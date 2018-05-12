@@ -1,1 +1,5 @@
-# crypt_example_py
+# Crypt example
+
+## Usage
+
+> python crypt_example.py
