@@ -1,6 +1,6 @@
 # Crypt example python
 
-This repository contains a script written in python, that describes the algorithm for generation of the Metahash address using python standard library.
+This repository contains a script written in python, that describes the algorithm for Metahash address generation using python standard library.
 
 ## Dependencies
 
