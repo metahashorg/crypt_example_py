@@ -4,7 +4,9 @@ This repository contains a script written in python, that describes the algorith
 
 ## Dependencies
 
+```shell
 pip install python3
+```
 
 ## Usage
 
