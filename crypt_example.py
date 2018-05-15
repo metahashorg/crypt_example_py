@@ -20,19 +20,28 @@ if __name__ == '__main__':
                                 encryption_algorithm=NoEncryption())
 
     pub_key = key.public_key()
+
+    x = pub_key.public_numbers().x
+    x_hex = hex(x)
+    x_hex = x_hex[2:]
+    x_len = 64 - len(x_hex)
+    x_hex = x_hex if x_len <= 0 else '0'*x_len + x_hex
+    y = pub_key.public_numbers().y
+    y_hex = hex(y)
+    y_hex = y_hex[2:]
+    y_len = 64 - len(y_hex)
+    y_hex = y_hex if y_len <= 0 else '0'*y_len + y_hex
+
+
     pub_key_der = pub_key.public_bytes(encoding=Encoding.DER,
                                 format=PublicFormat.SubjectPublicKeyInfo)
-    pub_key_pem = pub_key.public_bytes(encoding=Encoding.PEM,
-                                format=PublicFormat.SubjectPublicKeyInfo)
 
-    pub_key_der_65 = pub_key_der[:65]
-    pub_key = binascii.b2a_hex(pub_key_der_65)
+    code = '04' + str(x_hex) + str(y_hex)
     print("Done")
 
     print("Step 2. Perform SHA-256 hash on the public key.")
     h = hashlib.new('sha256')
-    t = binascii.a2b_hex(pub_key)
-    h.update(binascii.a2b_hex(pub_key))
+    h.update(binascii.a2b_hex(code))
     resulrt_sha256 = h.hexdigest()
     print("Done")
 
@@ -67,7 +76,7 @@ if __name__ == '__main__':
     text_file.close()
 
     text_file = open("mh_public.pub", "w")
-    text_file.write(pub_key.decode("utf-8"))
+    text_file.write(binascii.b2a_hex(pub_key_der).decode("utf-8"))
     text_file.close()
 
     text_file = open("mh_private.pem", "w")
