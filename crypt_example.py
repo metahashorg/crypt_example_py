@@ -14,7 +14,9 @@ except ImportError:
 
 
 def create_parser():
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description='Crypt example python',
+                                     prog='crypt_example.py',
+                                     usage='python %(prog)s [options]')
     parser.add_argument('-g', '--generate', action='store_true',
                         help='generate MH address to mh_address.txt')
     return parser
