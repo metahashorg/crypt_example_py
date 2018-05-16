@@ -12,7 +12,11 @@ pip install cryptography
 ## Usage
 
 ```shell
-python crypt_example.py
+python crypt_example.py [options]
+
+options:
+  -h, --help      show help message
+  -g, --generate  generate MetaHash address
 ```
 
 ### Outputs
