@@ -16,9 +16,12 @@ except ImportError:
 def create_parser():
     parser = argparse.ArgumentParser(description='Crypt example python',
                                      prog='crypt_example.py',
-                                     usage='python %(prog)s [options]')
-    parser.add_argument('-g', '--generate', action='store_true',
-                        help='generate MH address to mh_address.txt')
+                                     usage='python %(prog)s [functions]')
+    subparsers = parser.add_subparsers(title='List of functions',
+                                       metavar='', dest='subparser_name')
+
+    subparsers.add_parser('generate',
+                          help='generate MH address to mh_address.txt')
     return parser
 
 
@@ -96,7 +99,7 @@ if __name__ == '__main__':
     arg_parser = create_parser()
     option = arg_parser.parse_args(sys.argv[1:])
 
-    if option.generate:
+    if option.subparser_name == 'generate':
         print("Start generate MetaHash address...")
         generate_metahash_address()
     else:
