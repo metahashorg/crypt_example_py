@@ -47,6 +47,10 @@ def check_args(current_args, args_for_check, parser_name):
         print("Something went wrong, requires an argument 'address'")
         SUBPARSERS[parser_name].print_help()
         return False
+    elif 'hash' in args_for_check and current_args.hash is None:
+        print("Something went wrong, requires an argument 'hash'")
+        SUBPARSERS[parser_name].print_help()
+        return False
     return True
 
 
@@ -93,6 +97,15 @@ def fetch_history(address, net):
                             {"id": 1, "params": {"address": address}})
 
     return response_to_json(response)
+
+
+def get_tx(hash, net):
+    addr = get_ip_from_dns(TORRENT, net)
+
+    response = request_post(addr, TORRENT_PORT, 'get-tx',
+                            {"id": 1, "params": {"hash": hash}})
+
+    return response_to_json(response)
 def create_parser():
     parser = argparse.ArgumentParser(description='Crypt example python',
                                      prog='crypt_example.py',
@@ -124,6 +137,17 @@ def create_parser():
     history_parser.add_argument('--address', action='store', type=str,
                                 help='MH address', nargs=1)
     SUBPARSERS['history_parser'] = history_parser
+
+    get_tx_parser = subparsers.add_parser('get-tx',
+                                          description='Get transaction information by hash',
+                                          prog='crypt_example.py get-tx [args]',
+                                          usage='python %(prog)s',
+                                          help='get transaction information by hash')
+    get_tx_parser.add_argument('--net', action='store', type=str, nargs=1,
+                               help='name of network (test, dev, main, etc.)')
+    get_tx_parser.add_argument('--hash', action='store', type=str, nargs=1,
+                               help='transaction hash')
+    SUBPARSERS['get_tx_parser'] = get_tx_parser
     return parser
 
 
@@ -210,5 +234,8 @@ if __name__ == '__main__':
     elif option.subparser_name == 'fetch-history' and \
             check_args(option, ['net', 'address'], 'history_parser'):
         print(fetch_history(option.address[0], option.net[0]))
+    elif option.subparser_name == 'get-tx' and \
+            check_args(option, ['net', 'hash'], 'get_tx_parser'):
+        print(get_tx(option.hash[0], option.net[0]))
     else:
         arg_parser.print_help()
