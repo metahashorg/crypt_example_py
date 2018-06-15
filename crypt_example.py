@@ -3,6 +3,7 @@
 
 import sys
 import hashlib
+import json
 import binascii
 import argparse
 try:
@@ -27,11 +28,6 @@ except ImportError:
     print("Something went wrong, check your requests module installation")
     exit(1)
 
-try:
-    import json
-except ImportError:
-    print("Something went wrong, check your json module installation")
-    exit(1)
 
 PROXY = 'proxy.net-%s.metahash.org'
 PROXY_PORT = 9999
