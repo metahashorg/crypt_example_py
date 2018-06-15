@@ -106,6 +106,32 @@ def get_tx(hash, net):
                             {"id": 1, "params": {"hash": hash}})
 
     return response_to_json(response)
+
+
+def get_addr_from_pubkey(pub_key, with_logging=True):
+    if with_logging: print("Step 2. Perform SHA-256 hash on the public key.")
+    resulrt_sha256 = hash_code(pub_key, 'sha256')
+    if with_logging: print("Done")
+
+    if with_logging: print("Step 3. Perform RIPEMD-160 hash on the result of previous step.")
+    resulrt_rmd160 = '00' + hash_code(resulrt_sha256.encode('utf-8'), 'rmd160')
+    if with_logging: print("Done")
+
+    if with_logging: print("Step 4. SHA-256 hash is calculated on the result of previous step.")
+    resulrt_sha256rmd = hash_code(resulrt_rmd160.encode('utf-8'), 'sha256')
+    if with_logging: print("Done")
+
+    if with_logging: print("Step 5. Another SHA-256 hash performed on value from Step 4 and "
+          "save first 4 bytes.")
+    resulrt_sha256rmd_again = hash_code(resulrt_sha256rmd.encode('utf-8'),
+                                        'sha256')
+    first4_resulrt_sha256rmd_again = resulrt_sha256rmd_again[:8]
+    if with_logging: print("Done")
+
+    if with_logging: print("Step 6. These 4 bytes from last step added to RIPEMD-160 hash with "
+          "prefix 0x. ")
+    address = '0x' + resulrt_rmd160 + first4_resulrt_sha256rmd_again
+    return address
 def create_parser():
     parser = argparse.ArgumentParser(description='Crypt example python',
                                      prog='crypt_example.py',
@@ -192,30 +218,7 @@ def generate_metahash_address():
     save_to_file(pub_key_pem.decode("utf-8"), "mh_public.pub")
 
     code = get_code(pub_key)
-    print("Done")
-
-    print("Step 2. Perform SHA-256 hash on the public key.")
-    resulrt_sha256 = hash_code(code, 'sha256')
-    print("Done")
-
-    print("Step 3. Perform RIPEMD-160 hash on the result of previous step.")
-    resulrt_rmd160 = '00' + hash_code(resulrt_sha256.encode('utf-8'), 'rmd160')
-    print("Done")
-
-    print("Step 4. SHA-256 hash is calculated on the result of previous step.")
-    resulrt_sha256rmd = hash_code(resulrt_rmd160.encode('utf-8'), 'sha256')
-    print("Done")
-
-    print("Step 5. Another SHA-256 hash performed on value from Step 4 and "
-          "save first 4 bytes.")
-    resulrt_sha256rmd_again = hash_code(resulrt_sha256rmd.encode('utf-8'),
-                                        'sha256')
-    first4_resulrt_sha256rmd_again = resulrt_sha256rmd_again[:8]
-    print("Done")
-
-    print("Step 6. These 4 bytes from last step added to RIPEMD-160 hash with "
-          "prefix 0x. ")
-    address = '0x' + resulrt_rmd160 + first4_resulrt_sha256rmd_again
+    address = get_addr_from_pubkey(code)
     save_to_file(address, "mh_address.txt")
 
     print("Your Metahash address is %s" % address)
