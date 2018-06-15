@@ -7,8 +7,10 @@ import binascii
 import argparse
 try:
     from cryptography.hazmat.backends import default_backend
-    from cryptography.hazmat.primitives.asymmetric import ec
+    from cryptography.hazmat.primitives import hashes
+    from cryptography.hazmat.primitives.asymmetric import ec, padding
     from cryptography.hazmat.primitives.serialization import Encoding, PrivateFormat, NoEncryption, PublicFormat
+    from cryptography.hazmat.primitives.serialization import load_pem_private_key
 except ImportError:
     print("Something went wrong, check your cryptography module installation")
     exit(1)
@@ -50,6 +52,26 @@ def check_args(current_args, args_for_check, parser_name):
     elif 'hash' in args_for_check and current_args.hash is None:
         print("Something went wrong, requires an argument 'hash'")
         SUBPARSERS[parser_name].print_help()
+        return False
+    elif 'to' in args_for_check and current_args.to is None:
+        print("Something went wrong, requires an argument 'to'")
+        SUBPARSERS[parser_name].print_help()
+        return False
+    elif 'value' in args_for_check and current_args.value is None:
+        print("Something went wrong, requires an argument 'value'")
+        SUBPARSERS[parser_name].print_help()
+        return False
+    elif 'nonce' in args_for_check and current_args.nonce is None:
+        print("Something went wrong, requires an argument 'nonce'")
+        SUBPARSERS[parser_name].print_help()
+        return False
+    elif 'pubkey' in args_for_check and current_args.pubkey is None:
+        print("Something went wrong, requires an argument 'pubkey'")
+        SUBPARSERS[parser_name].print_help()
+        return False
+    elif 'privkey' in args_for_check and current_args.privkey is None:
+        print("Something went wrong, requires an argument 'privkey'")
+        SUBPARSERS['formation_tx_parser'].print_help()
         return False
     return True
 
@@ -132,6 +154,32 @@ def get_addr_from_pubkey(pub_key, with_logging=True):
           "prefix 0x. ")
     address = '0x' + resulrt_rmd160 + first4_resulrt_sha256rmd_again
     return address
+
+
+def formation_tx(to_addr, value, pub_key, private_key, nonce=None, fee='', data='', net=None):
+    if nonce is None:
+        req_json = json.loads(fetch_balance(get_addr_from_pubkey(pub_key, with_logging=False), net))
+        nonce = req_json['result']['count_spent'] + 1
+        nonce = str(nonce)
+
+    key = load_pem_private_key(private_key, password=None,
+                               backend=default_backend())
+    message = str.encode('%s#%s#%s#%s#%s' % (to_addr, str(value), str(nonce), fee, data))
+    signature = key.sign(
+        message,
+        ec.ECDSA(hashes.SHA256())
+    )
+
+    req_data = {"jsonrpc": "2.0", "method": "mhc_send", "params":
+               {"to": to_addr, "value": value, "fee": "",
+               "nonce": nonce, "data": "", "pubkey": pub_key.decode(),
+               "sign": binascii.b2a_hex(signature).decode()}}
+
+    # offline mode
+    if net is None:
+        print(json.dumps(req_data, indent=4, separators=(',', ': ')))
+    else:
+        pass # TODO online mode
 def create_parser():
     parser = argparse.ArgumentParser(description='Crypt example python',
                                      prog='crypt_example.py',
@@ -174,6 +222,25 @@ def create_parser():
     get_tx_parser.add_argument('--hash', action='store', type=str, nargs=1,
                                help='transaction hash')
     SUBPARSERS['get_tx_parser'] = get_tx_parser
+
+    formation_tx_parser = subparsers.add_parser('formation-tx',
+                                                description='Transaction formation from input params',
+                                                prog='crypt_example.py formation-tx [args]',
+                                                usage='python %(prog)s',
+                                                help="transaction formation from input params")
+    formation_tx_parser.add_argument('--net', action='store', type=str, nargs=1,
+                                     help='name of network (test, dev, main, etc.)')
+    formation_tx_parser.add_argument('--to', action='store', type=str, nargs=1,
+                                     help='to MH wallet address')
+    formation_tx_parser.add_argument('--value', action='store', type=str, nargs=1,
+                                     help='value to send')
+    formation_tx_parser.add_argument('--nonce', action='store', type=str, nargs=1,
+                                     help='number of outgoing transactions + 1')
+    formation_tx_parser.add_argument('--pubkey', action='store', type=str, nargs=1,
+                                     help='path to public key file')
+    formation_tx_parser.add_argument('--privkey', action='store', type=str, nargs=1,
+                                     help='path to private key file')
+    SUBPARSERS['formation_tx_parser'] = formation_tx_parser
     return parser
 
 
@@ -240,5 +307,13 @@ if __name__ == '__main__':
     elif option.subparser_name == 'get-tx' and \
             check_args(option, ['net', 'hash'], 'get_tx_parser'):
         print(get_tx(option.hash[0], option.net[0]))
+    elif option.subparser_name == 'formation-tx' and \
+            check_args(option, ['to', 'value', 'nonce', 'pubkey', 'privkey'],
+                       'formation_tx_parser'):
+        with open(option.pubkey[0], 'rb') as f:
+            pub = f.read()
+        with open(option.privkey[0], 'rb') as f:
+            pr = f.read()
+        formation_tx(option.to[0], option.value[0], pub, pr, nonce=option.nonce[0])
     else:
         arg_parser.print_help()
