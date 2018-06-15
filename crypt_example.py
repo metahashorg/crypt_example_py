@@ -84,6 +84,15 @@ def fetch_balance(address, net):
                             {"id": 1, "params": {"address": address}})
 
     return response_to_json(response)
+
+
+def fetch_history(address, net):
+    addr = get_ip_from_dns(TORRENT, net)
+
+    response = request_post(addr, TORRENT_PORT, 'fetch-history',
+                            {"id": 1, "params": {"address": address}})
+
+    return response_to_json(response)
 def create_parser():
     parser = argparse.ArgumentParser(description='Crypt example python',
                                      prog='crypt_example.py',
@@ -104,6 +113,17 @@ def create_parser():
     balance_parser.add_argument('--address', action='store', type=str,
                                 help='MH address', nargs=1)
     SUBPARSERS['balance_parser'] = balance_parser
+
+    history_parser = subparsers.add_parser('fetch-history',
+                                           description='Get history for MH address',
+                                           prog='crypt_example.py fetch-history [args]',
+                                           usage='python %(prog)s',
+                                           help="get history for MH address")
+    history_parser.add_argument('--net', action='store', type=str, nargs=1,
+                                help='name of network (test, dev, main, etc.)')
+    history_parser.add_argument('--address', action='store', type=str,
+                                help='MH address', nargs=1)
+    SUBPARSERS['history_parser'] = history_parser
     return parser
 
 
@@ -187,5 +207,8 @@ if __name__ == '__main__':
     elif option.subparser_name == 'fetch-balance' and \
             check_args(option, ['net', 'address'], 'balance_parser'):
         print(fetch_balance(option.address[0], option.net[0]))
+    elif option.subparser_name == 'fetch-history' and \
+            check_args(option, ['net', 'address'], 'history_parser'):
+        print(fetch_history(option.address[0], option.net[0]))
     else:
         arg_parser.print_help()
