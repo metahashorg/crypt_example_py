@@ -11,8 +11,79 @@ try:
     from cryptography.hazmat.primitives.serialization import Encoding, PrivateFormat, NoEncryption, PublicFormat
 except ImportError:
     print("Something went wrong, check your cryptography module installation")
+    exit(1)
+
+try:
+    import dns.resolver
+except ImportError:
+    print("Something went wrong, check your dnspython module installation")
+    exit(1)
+
+try:
+    import requests
+except ImportError:
+    print("Something went wrong, check your requests module installation")
+    exit(1)
+
+try:
+    import json
+except ImportError:
+    print("Something went wrong, check your json module installation")
+    exit(1)
+
+PROXY = 'proxy.net-%s.metahash.org'
+PROXY_PORT = 9999
+TORRENT = 'tor.net-%s.metahash.org'
+TORRENT_PORT = 5795
+SUBPARSERS = {}
 
 
+def check_args(current_args, args_for_check, parser_name):
+    if 'net' in args_for_check and current_args.net is None:
+        print("Something went wrong, requires an argument 'net'")
+        SUBPARSERS[parser_name].print_help()
+        return False
+    elif 'address' in args_for_check and current_args.address is None:
+        print("Something went wrong, requires an argument 'address'")
+        SUBPARSERS[parser_name].print_help()
+        return False
+    return True
+
+
+def get_ip_from_dns(url, net):
+    url = url % net
+
+    try:
+        return dns.resolver.Resolver().query(url).rrset.items[0].address
+    except dns.exception.Timeout as e:
+        print("Timeout operation timed out after %r seconds - your computer is"
+              " offline." % e.kwargs['timeout'])
+        exit(1)
+
+
+def request_post(ip, port, func, data):
+    req_url = "http://%s:%d/%s" % (ip, port, func)
+
+    try:
+        return requests.post(req_url, json=data)
+    except requests.exceptions.ConnectionError:
+        print("Something went wrong. Failed to establish a new connection: "
+              "[Errno 111] Connection refused.")
+        exit(1)
+
+
+def response_to_json(response):
+    res_json = json.loads(response.text)
+    return json.dumps(res_json, indent=4, separators=(',', ': '))
+
+
+def fetch_balance(address, net):
+    addr = get_ip_from_dns(TORRENT, net)
+
+    response = request_post(addr, TORRENT_PORT, 'fetch-balance',
+                            {"id": 1, "params": {"address": address}})
+
+    return response_to_json(response)
 def create_parser():
     parser = argparse.ArgumentParser(description='Crypt example python',
                                      prog='crypt_example.py',
@@ -22,6 +93,17 @@ def create_parser():
 
     subparsers.add_parser('generate',
                           help='generate MH address to mh_address.txt')
+
+    balance_parser = subparsers.add_parser('fetch-balance',
+                                           description='Get balance for MH address',
+                                           prog='crypt_example.py fetch-balance [args]',
+                                           usage='python %(prog)s',
+                                           help='get balance for MH address')
+    balance_parser.add_argument('--net', action='store', type=str, nargs=1,
+                                help='name of network (test, dev, main, etc.)')
+    balance_parser.add_argument('--address', action='store', type=str,
+                                help='MH address', nargs=1)
+    SUBPARSERS['balance_parser'] = balance_parser
     return parser
 
 
@@ -102,5 +184,8 @@ if __name__ == '__main__':
     if option.subparser_name == 'generate':
         print("Start generate MetaHash address...")
         generate_metahash_address()
+    elif option.subparser_name == 'fetch-balance' and \
+            check_args(option, ['net', 'address'], 'balance_parser'):
+        print(fetch_balance(option.address[0], option.net[0]))
     else:
         arg_parser.print_help()
