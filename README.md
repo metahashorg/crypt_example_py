@@ -19,18 +19,15 @@ usage: python crypt_example.py [functions]
 Crypt example python
 
 optional arguments:
-  -h, --help     show this help message and exit
+  -h, --help        show this help message and exit
 
 List of functions:
   
-    generate     generate MH address to mh_address.txt
-    fetch-balance
-                 get balance for MH address
-    fetch-history
-                 get history for MH address
-    get-tx       get transaction information by hash
-    formation-tx
-                 transaction formation from input params
+    generate        generate MH address to mh_address.txt
+    fetch-balance   get balance for MH address
+    fetch-history   get history for MH address
+    get-tx          get transaction information by hash
+    formation-tx    transaction formation from input params
 ```
 
 ### Outputs
