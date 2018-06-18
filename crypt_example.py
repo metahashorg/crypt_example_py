@@ -11,7 +11,7 @@ try:
     from cryptography.hazmat.primitives import hashes
     from cryptography.hazmat.primitives.asymmetric import ec, padding
     from cryptography.hazmat.primitives.serialization import Encoding, PrivateFormat, NoEncryption, PublicFormat
-    from cryptography.hazmat.primitives.serialization import load_pem_private_key
+    from cryptography.hazmat.primitives.serialization import load_pem_private_key, load_pem_public_key
 except ImportError:
     print("Something went wrong, check your cryptography module installation")
     exit(1)
@@ -157,22 +157,29 @@ def get_addr_from_pubkey(pub_key, with_logging=True):
 
 
 def create_tx(to_addr, value, pubkey, privkey, nonce=None, fee='', data='', net=None):
+    priv_key = load_pem_private_key(privkey, password=None,
+                               backend=default_backend())
+    pub_key = load_pem_public_key(pubkey, backend=default_backend())
+
     if nonce is None:
-        req_json = json.loads(fetch_balance(get_addr_from_pubkey(pub_key, with_logging=False), net))
+        mh_address = get_addr_from_pubkey(get_code(pub_key), with_logging=False)
+        req_json = json.loads(fetch_balance(mh_address, net))
         nonce = req_json['result']['count_spent'] + 1
         nonce = str(nonce)
 
-    key = load_pem_private_key(private_key, password=None,
-                               backend=default_backend())
-    message = str.encode('%s#%s#%s#%s#%s' % (to_addr, str(value), str(nonce), fee, data))
-    signature = key.sign(
+    message = str.encode('%s#%s#%s#%s#%s' % (to_addr, str(value), str(nonce),
+                                             fee, data))
+    signature = priv_key.sign(
         message,
         ec.ECDSA(hashes.SHA256())
     )
 
+    pub_key_der = pub_key.public_bytes(encoding=Encoding.DER,
+                                   format=PublicFormat.SubjectPublicKeyInfo)
+
     req_data = {"jsonrpc": "2.0", "method": "mhc_send", "params":
                {"to": to_addr, "value": value, "fee": "",
-               "nonce": nonce, "data": "", "pubkey": pub_key.decode(),
+               "nonce": nonce, "data": "", "pubkey": binascii.b2a_hex(pub_key_der).decode(),
                "sign": binascii.b2a_hex(signature).decode()}}
 
     # offline mode
@@ -283,9 +290,8 @@ def generate_metahash_address():
     save_to_file(private_key_pem.decode("utf-8"), "mh_private.pem")
 
     pub_key = private_key.public_key()
-    pub_key_der = pub_key.public_bytes(encoding=Encoding.DER,
-                                       format=PublicFormat.SubjectPublicKeyInfo)
-    pub_key_pem = binascii.b2a_hex(pub_key_der)
+    pub_key_pem = pub_key.public_bytes(encoding=Encoding.PEM,
+                                   format=PublicFormat.SubjectPublicKeyInfo)
     save_to_file(pub_key_pem.decode("utf-8"), "mh_public.pub")
 
     code = get_code(pub_key)
