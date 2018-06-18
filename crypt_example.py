@@ -143,8 +143,8 @@ def get_addr_from_pubkey(pub_key, with_logging=True):
     resulrt_sha256rmd = hash_code(resulrt_rmd160.encode('utf-8'), 'sha256')
     if with_logging: print("Done")
 
-    if with_logging: print("Step 5. Another SHA-256 hash performed on value from Step 4 and "
-          "save first 4 bytes.")
+    if with_logging: print("Step 5. Another SHA-256 hash performed on value from Step 4. "
+          "Save first 4 bytes.")
     resulrt_sha256rmd_again = hash_code(resulrt_sha256rmd.encode('utf-8'),
                                         'sha256')
     first4_resulrt_sha256rmd_again = resulrt_sha256rmd_again[:8]
@@ -223,20 +223,24 @@ def create_parser():
                                help='transaction hash')
     SUBPARSERS['get_tx_parser'] = get_tx_parser
 
-    formation_tx_parser = subparsers.add_parser('formation-tx',
-                                                description='Transaction formation from input params',
-                                                prog='crypt_example.py formation-tx [args]',
+    create_tx_parser = subparsers.add_parser('create-tx',
+                                                description='Create transaction from input params',
+                                                prog='crypt_example.py create-tx [args]',
                                                 usage='python %(prog)s',
-                                                help="transaction formation from input params")
-    formation_tx_parser.add_argument('--net', action='store', type=str, nargs=1,
+                                                help="create transaction using input params")
+    create_tx_parser.add_argument('--net', action='store', type=str, nargs=1,
                                      help='name of network (test, dev, main, etc.)')
-    formation_tx_parser.add_argument('--to', action='store', type=str, nargs=1,
+    create_tx_parser.add_argument('--to', action='store', type=str, nargs=1,
                                      help='to MH wallet address')
-    formation_tx_parser.add_argument('--value', action='store', type=str, nargs=1,
+    create_tx_parser.add_argument('--value', action='store', type=str, nargs=1,
                                      help='value to send')
-    formation_tx_parser.add_argument('--nonce', action='store', type=str, nargs=1,
+    create_tx_parser.add_argument('--nonce', action='store', type=str, nargs=1,
                                      help='number of outgoing transactions + 1')
-    formation_tx_parser.add_argument('--pubkey', action='store', type=str, nargs=1,
+    create_tx_parser.add_argument('--pubkey', action='store', type=str, nargs=1,
+                                     help='path to public key file')
+    create_tx_parser.add_argument('--privkey', action='store', type=str, nargs=1,
+                                     help='path to private key file')
+    SUBPARSERS['create_tx_parser'] = create_tx_parser
                                      help='path to public key file')
     formation_tx_parser.add_argument('--privkey', action='store', type=str, nargs=1,
                                      help='path to private key file')
@@ -269,7 +273,7 @@ def hash_code(code, algth):
 
 
 def generate_metahash_address():
-    print("Step 1. Generate rpivate and public keys. Take part of the public "
+    print("Step 1. Generate private and public keys. Take part of the public "
           "key that equals to 65 bytes.")
 
     private_key = ec.generate_private_key(ec.SECP256K1(), default_backend())
@@ -307,9 +311,9 @@ if __name__ == '__main__':
     elif option.subparser_name == 'get-tx' and \
             check_args(option, ['net', 'hash'], 'get_tx_parser'):
         print(get_tx(option.hash[0], option.net[0]))
-    elif option.subparser_name == 'formation-tx' and \
+    elif option.subparser_name == 'create-tx' and \
             check_args(option, ['to', 'value', 'nonce', 'pubkey', 'privkey'],
-                       'formation_tx_parser'):
+                       'create_tx_parser'):
         with open(option.pubkey[0], 'rb') as f:
             pub = f.read()
         with open(option.privkey[0], 'rb') as f:
