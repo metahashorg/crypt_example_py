@@ -184,9 +184,24 @@ def create_tx(to_addr, value, pubkey, privkey, nonce=None, fee='', data='', net=
 
     # offline mode
     if net is None:
-        print(json.dumps(req_data, indent=4, separators=(',', ': ')))
-    else:
-        pass # TODO online mode
+        return json.dumps(req_data, indent=4, separators=(',', ': '))
+    else: # online mode
+        addr = get_ip_from_dns(PROXY, net)
+
+        req_url = "http://%s:%d" % (addr, PROXY_PORT)
+        headers = {'Content-Type': 'application/json', 'Accept': 'text/plain'}
+
+        try:
+            res = requests.post(req_url, data=json.dumps(req_data),
+                                headers=headers)
+        except requests.exceptions.ConnectionError:
+            print("Something went wrong. Failed to establish a new connection: "
+                  "[Errno 111] Connection refused.")
+            exit(1)
+
+        return response_to_json(res)
+
+
 def create_parser():
     parser = argparse.ArgumentParser(description='Crypt example python',
                                      prog='crypt_example.py',
@@ -248,10 +263,24 @@ def create_parser():
     create_tx_parser.add_argument('--privkey', action='store', type=str, nargs=1,
                                      help='path to private key file')
     SUBPARSERS['create_tx_parser'] = create_tx_parser
+
+    sending_tx_parser = subparsers.add_parser('send-tx',
+                                              description='Create transaction and sending',
+                                              prog='crypt_example.py sending-tx [args]',
+                                              usage='python %(prog)s',
+                                              help='Create transaction and sending')
+    sending_tx_parser.add_argument('--net', action='store', type=str, nargs=1,
+                                   help='name of network (test, dev, main, etc.)')
+    sending_tx_parser.add_argument('--to', action='store', type=str, nargs=1,
+                                   help='to MH wallet address')
+    sending_tx_parser.add_argument('--value', action='store', type=str, nargs=1,
+                                   help='value to send')
+    sending_tx_parser.add_argument('--pubkey', action='store', type=str, nargs=1,
                                      help='path to public key file')
-    formation_tx_parser.add_argument('--privkey', action='store', type=str, nargs=1,
+    sending_tx_parser.add_argument('--privkey', action='store', type=str, nargs=1,
                                      help='path to private key file')
-    SUBPARSERS['formation_tx_parser'] = formation_tx_parser
+    SUBPARSERS['send_tx_parser'] = sending_tx_parser
+
     return parser
 
 
@@ -326,5 +355,14 @@ if __name__ == '__main__':
             pr = f.read()
         print(create_tx(option.to[0], option.value[0], pub, pr,
                            nonce=option.nonce[0]))
+    elif option.subparser_name == 'send-tx' and \
+            check_args(option, ['to', 'value', 'net', 'pubkey', 'privkey'],
+                       'send_tx_parser'):
+        with open(option.pubkey[0], 'rb') as f:
+            pub = f.read()
+        with open(option.privkey[0], 'rb') as f:
+            pr = f.read()
+        print(create_tx(option.to[0], option.value[0], pub, pr,
+                           net=option.net[0]))
     else:
         arg_parser.print_help()
