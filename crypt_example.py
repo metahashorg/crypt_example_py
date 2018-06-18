@@ -156,7 +156,7 @@ def get_addr_from_pubkey(pub_key, with_logging=True):
     return address
 
 
-def formation_tx(to_addr, value, pub_key, private_key, nonce=None, fee='', data='', net=None):
+def create_tx(to_addr, value, pubkey, privkey, nonce=None, fee='', data='', net=None):
     if nonce is None:
         req_json = json.loads(fetch_balance(get_addr_from_pubkey(pub_key, with_logging=False), net))
         nonce = req_json['result']['count_spent'] + 1
@@ -318,6 +318,7 @@ if __name__ == '__main__':
             pub = f.read()
         with open(option.privkey[0], 'rb') as f:
             pr = f.read()
-        formation_tx(option.to[0], option.value[0], pub, pr, nonce=option.nonce[0])
+        print(create_tx(option.to[0], option.value[0], pub, pr,
+                           nonce=option.nonce[0]))
     else:
         arg_parser.print_help()
