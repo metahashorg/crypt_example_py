@@ -1,6 +1,6 @@
 # Crypt example python
 
-This repository contains a script written in python, that describes the algorithm for the Metahash address generation using cryptography module, fetching balance and history for wallet, getting information about transaction by hash and formating transaction. 
+This repository contains a script written in python, that describes the algorithm for the Metahash address generation using cryptography module, fetching balance and history for wallet, getting information about transaction by hash and creating transaction. 
 
 ## Dependencies
 
@@ -27,7 +27,7 @@ List of functions:
     fetch-balance   get balance for MH address
     fetch-history   get history for MH address
     get-tx          get transaction information by hash
-    formation-tx    transaction formation from input params
+    formation-tx    create transaction using input params
 ```
 
 ### Outputs
@@ -43,14 +43,14 @@ mh_address.txt - metahash address file
 ```shell
 #python crypt_example.py generate
 Start generate MetaHash address...
-Step 1. Generate rpivate and public keys. Take part of the public key that equals to 65 bytes.
+Step 1. Generate private and public keys. Take part of the public key that equals to 65 bytes.
 Step 2. Perform SHA-256 hash on the public key.
 Done
 Step 3. Perform RIPEMD-160 hash on the result of previous step.
 Done
 Step 4. SHA-256 hash is calculated on the result of previous step.
 Done
-Step 5. Another SHA-256 hash performed on value from Step 4 and save first 4 bytes.
+Step 5. Another SHA-256 hash performed on value from Step 4.  Save first 4 bytes.
 Done
 Step 6. These 4 bytes from last step added to RIPEMD-160 hash with prefix 0x. 
 Your Metahash address is 0x003d3b27f544d1dc03d6802e6379fdcfc25e0b73272b62496b
