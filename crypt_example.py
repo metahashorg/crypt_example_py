@@ -102,7 +102,7 @@ def create_parser():
                                               description='Create transaction and sending',
                                               prog='crypt_example.py sending-tx [args]',
                                               usage='python %(prog)s',
-                                              help='Create transaction and sending')
+                                              help='create and send transaction')
     sending_tx_parser.add_argument('--net', action='store', type=str, nargs=1,
                                    help='name of network (test, dev, main, etc.)')
     sending_tx_parser.add_argument('--to', action='store', type=str, nargs=1,
