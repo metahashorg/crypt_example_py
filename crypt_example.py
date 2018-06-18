@@ -67,7 +67,7 @@ def check_args(current_args, args_for_check, parser_name):
         return False
     elif 'privkey' in args_for_check and current_args.privkey is None:
         print("Something went wrong, requires an argument 'privkey'")
-        SUBPARSERS['formation_tx_parser'].print_help()
+        SUBPARSERS[parser_name].print_help()
         return False
     return True
 
