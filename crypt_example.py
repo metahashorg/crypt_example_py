@@ -36,172 +36,6 @@ TORRENT_PORT = 5795
 SUBPARSERS = {}
 
 
-def check_args(current_args, args_for_check, parser_name):
-    if 'net' in args_for_check and current_args.net is None:
-        print("Something went wrong, requires an argument 'net'")
-        SUBPARSERS[parser_name].print_help()
-        return False
-    elif 'address' in args_for_check and current_args.address is None:
-        print("Something went wrong, requires an argument 'address'")
-        SUBPARSERS[parser_name].print_help()
-        return False
-    elif 'hash' in args_for_check and current_args.hash is None:
-        print("Something went wrong, requires an argument 'hash'")
-        SUBPARSERS[parser_name].print_help()
-        return False
-    elif 'to' in args_for_check and current_args.to is None:
-        print("Something went wrong, requires an argument 'to'")
-        SUBPARSERS[parser_name].print_help()
-        return False
-    elif 'value' in args_for_check and current_args.value is None:
-        print("Something went wrong, requires an argument 'value'")
-        SUBPARSERS[parser_name].print_help()
-        return False
-    elif 'nonce' in args_for_check and current_args.nonce is None:
-        print("Something went wrong, requires an argument 'nonce'")
-        SUBPARSERS[parser_name].print_help()
-        return False
-    elif 'pubkey' in args_for_check and current_args.pubkey is None:
-        print("Something went wrong, requires an argument 'pubkey'")
-        SUBPARSERS[parser_name].print_help()
-        return False
-    elif 'privkey' in args_for_check and current_args.privkey is None:
-        print("Something went wrong, requires an argument 'privkey'")
-        SUBPARSERS[parser_name].print_help()
-        return False
-    return True
-
-
-def get_ip_from_dns(url, net):
-    url = url % net
-
-    try:
-        return dns.resolver.Resolver().query(url).rrset.items[0].address
-    except dns.exception.Timeout as e:
-        print("Timeout operation timed out after %r seconds - your computer is"
-              " offline." % e.kwargs['timeout'])
-        exit(1)
-
-
-def request_post(ip, port, func, data):
-    req_url = "http://%s:%d/%s" % (ip, port, func)
-
-    try:
-        return requests.post(req_url, json=data)
-    except requests.exceptions.ConnectionError:
-        print("Something went wrong. Failed to establish a new connection: "
-              "[Errno 111] Connection refused.")
-        exit(1)
-
-
-def response_to_json(response):
-    try:
-        res_json = json.loads(response.text)
-    except json.decoder.JSONDecodeError:
-        print("Something went wrong. Not valid json received from server")
-        exit(1)
-    return json.dumps(res_json, indent=4, separators=(',', ': '))
-
-
-def fetch_balance(address, net):
-    addr = get_ip_from_dns(TORRENT, net)
-
-    response = request_post(addr, TORRENT_PORT, 'fetch-balance',
-                            {"id": 1, "params": {"address": address}})
-
-    return response_to_json(response)
-
-
-def fetch_history(address, net):
-    addr = get_ip_from_dns(TORRENT, net)
-
-    response = request_post(addr, TORRENT_PORT, 'fetch-history',
-                            {"id": 1, "params": {"address": address}})
-
-    return response_to_json(response)
-
-
-def get_tx(hash, net):
-    addr = get_ip_from_dns(TORRENT, net)
-
-    response = request_post(addr, TORRENT_PORT, 'get-tx',
-                            {"id": 1, "params": {"hash": hash}})
-
-    return response_to_json(response)
-
-
-def get_addr_from_pubkey(pub_key, with_logging=True):
-    if with_logging: print("Step 2. Perform SHA-256 hash on the public key.")
-    resulrt_sha256 = hash_code(pub_key, 'sha256')
-    if with_logging: print("Done")
-
-    if with_logging: print("Step 3. Perform RIPEMD-160 hash on the result of previous step.")
-    resulrt_rmd160 = '00' + hash_code(resulrt_sha256.encode('utf-8'), 'rmd160')
-    if with_logging: print("Done")
-
-    if with_logging: print("Step 4. SHA-256 hash is calculated on the result of previous step.")
-    resulrt_sha256rmd = hash_code(resulrt_rmd160.encode('utf-8'), 'sha256')
-    if with_logging: print("Done")
-
-    if with_logging: print("Step 5. Another SHA-256 hash performed on value from Step 4. "
-          "Save first 4 bytes.")
-    resulrt_sha256rmd_again = hash_code(resulrt_sha256rmd.encode('utf-8'),
-                                        'sha256')
-    first4_resulrt_sha256rmd_again = resulrt_sha256rmd_again[:8]
-    if with_logging: print("Done")
-
-    if with_logging: print("Step 6. These 4 bytes from last step added to RIPEMD-160 hash with "
-          "prefix 0x. ")
-    address = '0x' + resulrt_rmd160 + first4_resulrt_sha256rmd_again
-    return address
-
-
-def create_tx(to_addr, value, pubkey, privkey, nonce=None, fee='', data='', net=None):
-    priv_key = load_pem_private_key(privkey, password=None,
-                               backend=default_backend())
-    pub_key = load_pem_public_key(pubkey, backend=default_backend())
-
-    if nonce is None:
-        mh_address = get_addr_from_pubkey(get_code(pub_key), with_logging=False)
-        req_json = json.loads(fetch_balance(mh_address, net))
-        nonce = req_json['result']['count_spent'] + 1
-        nonce = str(nonce)
-
-    message = str.encode('%s#%s#%s#%s#%s' % (to_addr, str(value), str(nonce),
-                                             fee, data))
-    signature = priv_key.sign(
-        message,
-        ec.ECDSA(hashes.SHA256())
-    )
-
-    pub_key_der = pub_key.public_bytes(encoding=Encoding.DER,
-                                   format=PublicFormat.SubjectPublicKeyInfo)
-
-    req_data = {"jsonrpc": "2.0", "method": "mhc_send", "params":
-               {"to": to_addr, "value": value, "fee": "",
-               "nonce": nonce, "data": "", "pubkey": binascii.b2a_hex(pub_key_der).decode(),
-               "sign": binascii.b2a_hex(signature).decode()}}
-
-    # offline mode
-    if net is None:
-        return json.dumps(req_data, indent=4, separators=(',', ': '))
-    else: # online mode
-        addr = get_ip_from_dns(PROXY, net)
-
-        req_url = "http://%s:%d" % (addr, PROXY_PORT)
-        headers = {'Content-Type': 'application/json', 'Accept': 'text/plain'}
-
-        try:
-            res = requests.post(req_url, data=json.dumps(req_data),
-                                headers=headers)
-        except requests.exceptions.ConnectionError:
-            print("Something went wrong. Failed to establish a new connection: "
-                  "[Errno 111] Connection refused.")
-            exit(1)
-
-        return response_to_json(res)
-
-
 def create_parser():
     parser = argparse.ArgumentParser(description='Crypt example python',
                                      prog='crypt_example.py',
@@ -284,6 +118,99 @@ def create_parser():
     return parser
 
 
+def check_args(current_args, args_for_check, parser_name):
+    if 'net' in args_for_check and current_args.net is None:
+        print("Something went wrong, requires an argument 'net'")
+        SUBPARSERS[parser_name].print_help()
+        return False
+    elif 'address' in args_for_check and current_args.address is None:
+        print("Something went wrong, requires an argument 'address'")
+        SUBPARSERS[parser_name].print_help()
+        return False
+    elif 'hash' in args_for_check and current_args.hash is None:
+        print("Something went wrong, requires an argument 'hash'")
+        SUBPARSERS[parser_name].print_help()
+        return False
+    elif 'to' in args_for_check and current_args.to is None:
+        print("Something went wrong, requires an argument 'to'")
+        SUBPARSERS[parser_name].print_help()
+        return False
+    elif 'value' in args_for_check and current_args.value is None:
+        print("Something went wrong, requires an argument 'value'")
+        SUBPARSERS[parser_name].print_help()
+        return False
+    elif 'nonce' in args_for_check and current_args.nonce is None:
+        print("Something went wrong, requires an argument 'nonce'")
+        SUBPARSERS[parser_name].print_help()
+        return False
+    elif 'pubkey' in args_for_check and current_args.pubkey is None:
+        print("Something went wrong, requires an argument 'pubkey'")
+        SUBPARSERS[parser_name].print_help()
+        return False
+    elif 'privkey' in args_for_check and current_args.privkey is None:
+        print("Something went wrong, requires an argument 'privkey'")
+        SUBPARSERS[parser_name].print_help()
+        return False
+    return True
+
+
+def get_ip_from_dns(url, net):
+    url = url % net
+
+    try:
+        return dns.resolver.Resolver().query(url).rrset.items[0].address
+    except dns.exception.Timeout as e:
+        print("Timeout operation timed out after %r seconds - your computer is"
+              " offline." % e.kwargs['timeout'])
+        exit(1)
+
+
+def request_post(ip, port, func, data):
+    req_url = "http://%s:%d/%s" % (ip, port, func)
+
+    try:
+        return requests.post(req_url, json=data)
+    except requests.exceptions.ConnectionError:
+        print("Something went wrong. Failed to establish a new connection: "
+              "[Errno 111] Connection refused.")
+        exit(1)
+
+
+def response_to_json(response):
+    try:
+        res_json = json.loads(response.text)
+    except json.decoder.JSONDecodeError:
+        print("Something went wrong. Not valid json received from server")
+        exit(1)
+    return json.dumps(res_json, indent=4, separators=(',', ': '))
+
+
+def get_addr_from_pubkey(pub_key, with_logging=True):
+    if with_logging: print("Step 2. Perform SHA-256 hash on the public key.")
+    resulrt_sha256 = hash_code(pub_key, 'sha256')
+    if with_logging: print("Done")
+
+    if with_logging: print("Step 3. Perform RIPEMD-160 hash on the result of previous step.")
+    resulrt_rmd160 = '00' + hash_code(resulrt_sha256.encode('utf-8'), 'rmd160')
+    if with_logging: print("Done")
+
+    if with_logging: print("Step 4. SHA-256 hash is calculated on the result of previous step.")
+    resulrt_sha256rmd = hash_code(resulrt_rmd160.encode('utf-8'), 'sha256')
+    if with_logging: print("Done")
+
+    if with_logging: print("Step 5. Another SHA-256 hash performed on value from Step 4. "
+          "Save first 4 bytes.")
+    resulrt_sha256rmd_again = hash_code(resulrt_sha256rmd.encode('utf-8'),
+                                        'sha256')
+    first4_resulrt_sha256rmd_again = resulrt_sha256rmd_again[:8]
+    if with_logging: print("Done")
+
+    if with_logging: print("Step 6. These 4 bytes from last step added to RIPEMD-160 hash with "
+          "prefix 0x. ")
+    address = '0x' + resulrt_rmd160 + first4_resulrt_sha256rmd_again
+    return address
+
+
 def save_to_file(text, file_name):
     with open(file_name, 'w') as f:
         f.write(text)
@@ -328,6 +255,79 @@ def generate_metahash_address():
     save_to_file(address, "mh_address.txt")
 
     print("Your Metahash address is %s" % address)
+
+
+def fetch_balance(address, net):
+    addr = get_ip_from_dns(TORRENT, net)
+
+    response = request_post(addr, TORRENT_PORT, 'fetch-balance',
+                            {"id": 1, "params": {"address": address}})
+
+    return response_to_json(response)
+
+
+def fetch_history(address, net):
+    addr = get_ip_from_dns(TORRENT, net)
+
+    response = request_post(addr, TORRENT_PORT, 'fetch-history',
+                            {"id": 1, "params": {"address": address}})
+
+    return response_to_json(response)
+
+
+def get_tx(hash, net):
+    addr = get_ip_from_dns(TORRENT, net)
+
+    response = request_post(addr, TORRENT_PORT, 'get-tx',
+                            {"id": 1, "params": {"hash": hash}})
+
+    return response_to_json(response)
+
+
+def create_tx(to_addr, value, pubkey, privkey, nonce=None, fee='', data='', net=None):
+    priv_key = load_pem_private_key(privkey, password=None,
+                               backend=default_backend())
+    pub_key = load_pem_public_key(pubkey, backend=default_backend())
+
+    if nonce is None:
+        mh_address = get_addr_from_pubkey(get_code(pub_key), with_logging=False)
+        req_json = json.loads(fetch_balance(mh_address, net))
+        nonce = req_json['result']['count_spent'] + 1
+        nonce = str(nonce)
+
+    message = str.encode('%s#%s#%s#%s#%s' % (to_addr, str(value), str(nonce),
+                                             fee, data))
+    signature = priv_key.sign(
+        message,
+        ec.ECDSA(hashes.SHA256())
+    )
+
+    pub_key_der = pub_key.public_bytes(encoding=Encoding.DER,
+                                   format=PublicFormat.SubjectPublicKeyInfo)
+
+    req_data = {"jsonrpc": "2.0", "method": "mhc_send", "params":
+               {"to": to_addr, "value": value, "fee": "",
+               "nonce": nonce, "data": "", "pubkey": binascii.b2a_hex(pub_key_der).decode(),
+               "sign": binascii.b2a_hex(signature).decode()}}
+
+    # offline mode
+    if net is None:
+        return json.dumps(req_data, indent=4, separators=(',', ': '))
+    else: # online mode
+        addr = get_ip_from_dns(PROXY, net)
+
+        req_url = "http://%s:%d" % (addr, PROXY_PORT)
+        headers = {'Content-Type': 'application/json', 'Accept': 'text/plain'}
+
+        try:
+            res = requests.post(req_url, data=json.dumps(req_data),
+                                headers=headers)
+        except requests.exceptions.ConnectionError:
+            print("Something went wrong. Failed to establish a new connection: "
+                  "[Errno 111] Connection refused.")
+            exit(1)
+
+        return response_to_json(res)
 
 
 if __name__ == '__main__':
