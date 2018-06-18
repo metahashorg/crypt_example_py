@@ -95,7 +95,11 @@ def request_post(ip, port, func, data):
 
 
 def response_to_json(response):
-    res_json = json.loads(response.text)
+    try:
+        res_json = json.loads(response.text)
+    except json.decoder.JSONDecodeError:
+        print("Something went wrong. Not valid json received from server")
+        exit(1)
     return json.dumps(res_json, indent=4, separators=(',', ': '))
 
 
