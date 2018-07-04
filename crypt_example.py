@@ -284,6 +284,11 @@ def get_tx(hash, net):
     return response_to_json(response)
 
 
+def get_signed_line(to_addr, value, nonce, fee, data):
+    return '%s#%s#%s#%s#%s' % (to_addr, str(value), str(nonce),
+                                             str(fee), data)
+
+
 def create_tx(to_addr, value, pubkey, privkey, nonce=None, fee='', data='', net=None):
     priv_key = load_pem_private_key(privkey, password=None,
                                backend=default_backend())
@@ -295,8 +300,8 @@ def create_tx(to_addr, value, pubkey, privkey, nonce=None, fee='', data='', net=
         nonce = req_json['result']['count_spent'] + 1
         nonce = str(nonce)
 
-    message = str.encode('%s#%s#%s#%s#%s' % (to_addr, str(value), str(nonce),
-                                             fee, data))
+    message = str.encode(get_signed_line(to_addr, value, nonce, fee, data))
+
     signature = priv_key.sign(
         message,
         ec.ECDSA(hashes.SHA256())
