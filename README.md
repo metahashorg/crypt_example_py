@@ -27,7 +27,8 @@ List of functions:
     fetch-balance   get balance for MH address
     fetch-history   get history for MH address
     get-tx          get transaction information by hash
-    formation-tx    create transaction using input params
+    create-tx       create transaction using input params
+    send-tx         create and send transaction
 ```
 
 ### Outputs
@@ -60,70 +61,75 @@ Your Metahash address is 0x003d3b27f544d1dc03d6802e6379fdcfc25e0b73272b62496b
     "id": 1,
     "result": {
         "address": "0x003d3b27f544d1dc03d6802e6379fdcfc25e0b73272b62496b",
-        "received": 0,
-        "spent": 0,
-        "count_received": 0,
-        "count_spent": 0,
-        "block_number": 0,
-        "currentBlock": 1457
+        "received": 10000,
+        "spent": 2000,
+        "count_received": 1,
+        "count_spent": 2,
+        "block_number": 1501,
+        "currentBlock": 1512
     }
 }
 
-#python crypt_example.py fetch-history --net=dev --address=0x0074bcb34e85b717dc3bf356001c7e733209572c9eaf138628
+#python crypt_example.py fetch-history --net=dev --address=0x003d3b27f544d1dc03d6802e6379fdcfc25e0b73272b62496b
 {
     "id": 1,
     "result": [
         {
-            "from": "0x00326a4faadbfd478724ea248cf20e671fff885219f2649489",
-            "to": "0x0074bcb34e85b717dc3bf356001c7e733209572c9eaf138628",
-            "value": 10000000,
-            "transaction": "5086a55d75c0d77a09996dd17b776a1a9f4066db7dd0213ba03730517a8b4927",
-            "timestamp": 1528895556
+            "from": "0x00525d3f6326549b8974ef669f8fced6153109ba60d52d547d",
+            "to": "0x003d3b27f544d1dc03d6802e6379fdcfc25e0b73272b62496b",
+            "value": 10000,
+            "transaction": "53a14ebb8bd111a80d013d015c14a856facff40a55852ad83e2934346df18d5d",
+            "timestamp": 1529306546
         },
         {
-            "from": "0x00525d3f6326549b8974ef669f8fced6153109ba60d52d547d",
-            "to": "0x0074bcb34e85b717dc3bf356001c7e733209572c9eaf138628",
-            "value": 10000,
-            "transaction": "c644850f36a63b5c4b65c449ee543b53e594cf79a0eda541ae6eefcd89cbe127",
-            "timestamp": 1528895598
+            "from": "0x003d3b27f544d1dc03d6802e6379fdcfc25e0b73272b62496b",
+            "to": "0x00525d3f6326549b8974ef669f8fced6153109ba60d52d547d",
+            "value": 1000,
+            "transaction": "babd020d4f33bbf208a62f39e32de3a37e4a81c1cd607cd4d4bcd4e7d4bcf701",
+            "timestamp": 1529306666
         },
-        ...
         {
-            "from": "0x00525d3f6326549b8974ef669f8fced6153109ba60d52d547d",
-            "to": "0x0074bcb34e85b717dc3bf356001c7e733209572c9eaf138628",
-            "value": 10000,
-            "transaction": "bf45ace5ab6ef6f8a2f0825cbf70c578bdf2aede2b80341141dd71b90d6a96ee",
-            "timestamp": 1528971011
+            "from": "0x003d3b27f544d1dc03d6802e6379fdcfc25e0b73272b62496b",
+            "to": "0x00525d3f6326549b8974ef669f8fced6153109ba60d52d547d",
+            "value": 1000,
+            "transaction": "ee0e11b793ff5a5b0d6954f0da4964ceb53f9887480e9a5e42608830ed401963",
+            "timestamp": 1529308272
         }
     ]
 }
 
-#python crypt_example.py get-tx --net=dev --hash=bf45ace5ab6ef6f8a2f0825cbf70c578bdf2aede2b80341141dd71b90d6a96ee
+#python crypt_example.py get-tx --net=dev --hash=ee0e11b793ff5a5b0d6954f0da4964ceb53f9887480e9a5e42608830ed401963
 {
     "id": 1,
     "result": {
         "transaction": {
-            "from": "0x00525d3f6326549b8974ef669f8fced6153109ba60d52d547d",
-            "to": "0x0074bcb34e85b717dc3bf356001c7e733209572c9eaf138628",
-            "value": 10000,
-            "transaction": "bf45ace5ab6ef6f8a2f0825cbf70c578bdf2aede2b80341141dd71b90d6a96ee",
-            "timestamp": 1528971011
+            "from": "0x003d3b27f544d1dc03d6802e6379fdcfc25e0b73272b62496b",
+            "to": "0x00525d3f6326549b8974ef669f8fced6153109ba60d52d547d",
+            "value": 1000,
+            "transaction": "ee0e11b793ff5a5b0d6954f0da4964ceb53f9887480e9a5e42608830ed401963",
+            "timestamp": 1529308272
         }
     }
 }
 
-#python crypt_example.py formation-tx --to=0x0074bcb34e85b717dc3bf356001c7e733209572c9eaf138628 --value=12 --nonce=1 --pubkey=mh_public.pub --privkey=mh_private.pem
+#python crypt_example.py create-tx --to=0x00525d3f6326549b8974ef669f8fced6153109ba60d52d547d --value=1000 --nonce=3 --pubkey=mh_public.pub --privkey=mh_private.pem
 {
     "jsonrpc": "2.0",
     "method": "mhc_send",
     "params": {
-        "to": "0x0074bcb34e85b717dc3bf356001c7e733209572c9eaf138628",
-        "value": "12",
+        "to": "0x00525d3f6326549b8974ef669f8fced6153109ba60d52d547d",
+        "value": "1000",
         "fee": "",
-        "nonce": "1",
+        "nonce": "3",
         "data": "",
         "pubkey": "3056301006072a8648ce3d020106052b8104000a034200042fe59a96a81e55a592f5deedc331218f865a707e78254e2e5b476aa81e6dba17da86010a36a952c71d839dcdb9e20fbb5d29e7a739ee61444fe008d35c7557e8",
-        "sign": "3046022100967873551b880137e7bf9671a1594cdb9f5abeb47f0c1273ff93f335736db03f022100e81a642fb5c917344519b80c3b93f593b90b3ccb5e79c09589d21f27ababd127"
+        "sign": "3046022100c3a396b901bc856063a86c031edbd12de4ac3d8a47d4f447417b787eb6935845022100f0d5def340f8265f390bd025afcc36bb50523a5ec2e75a77ca38dbeaf6735d34"
     }
+}
+
+#python crypt_example.py send-tx --net=dev --to=0x00525d3f6326549b8974ef669f8fced6153109ba60d52d547d --value=1000 --pubkey=mh_public.pub --privkey=mh_private.pem
+{
+    "result": "ok",
+    "params": "e5147c8c42c94344a067fe2ded493f15cc8e4299b3333f6651ecd3e6381bfefa"
 }
 ```
