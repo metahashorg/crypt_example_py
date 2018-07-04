@@ -337,8 +337,6 @@ def get_signed_line(to_addr, value, nonce, fee, data):
     result_str += int_to_hex(nonce)
     result_str += int_to_hex(len(data))
 
-    print(result_str)
-
     return binascii.unhexlify(result_str)
 
 
@@ -354,8 +352,6 @@ def create_tx(to_addr, value, pubkey, privkey, nonce=None, fee=0, data='', net=N
         nonce = str(nonce)
 
     message = get_signed_line(to_addr, value, nonce, fee, data)
-
-    print(message)
 
     signature = priv_key.sign(
         message,
