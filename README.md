@@ -1,6 +1,6 @@
 # Crypt example python
 
-This repository contains a script written in python, that describes the algorithm for the Metahash address generation using cryptography module, fetching balance and history for wallet, getting information about transaction by hash and creating transaction. 
+This repository contains a script written in Python that describes the algorithm for the Metahash address generation using cryptography module, fetching balance and history for wallet, creating and sending transaction as well as getting information about performing transaction by hash.
 
 ## Dependencies
 
