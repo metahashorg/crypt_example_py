@@ -171,8 +171,7 @@ def request_post(ip, port, func, data):
     try:
         return requests.post(req_url, json=data)
     except requests.exceptions.ConnectionError:
-        print("Something went wrong. Failed to establish a new connection: "
-              "[Errno 111] Connection refused.")
+        print(f'Something went wrong. Failed to establish a new connection: [Error 111] Connection refused. {ip}:{port}/{func} ')
         exit(1)
 
 
