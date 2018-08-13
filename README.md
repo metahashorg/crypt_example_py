@@ -14,7 +14,7 @@ pip install requests
 ## Usage
 
 ```shell
-usage: python crypt_example.py [functions]
+usage: python crypt_example_bin.py [functions]
 
 Crypt example python
 
@@ -42,7 +42,7 @@ mh_address.txt - metahash address file
 ### Outputs examples
 
 ```shell
-#python crypt_example.py generate
+#python crypt_example_bin.py generate
 Start generate MetaHash address...
 Step 1. Generate private and public keys. Take part of the public key that equals to 65 bytes.
 Step 2. Perform SHA-256 hash on the public key.
@@ -56,7 +56,7 @@ Done
 Step 6. These 4 bytes from last step added to RIPEMD-160 hash with prefix 0x. 
 Your Metahash address is 0x003d3b27f544d1dc03d6802e6379fdcfc25e0b73272b62496b
 
-#python crypt_example.py fetch-balance --net=dev --address=0x003d3b27f544d1dc03d6802e6379fdcfc25e0b73272b62496b
+#python crypt_example_bin.py fetch-balance --net=dev --address=0x003d3b27f544d1dc03d6802e6379fdcfc25e0b73272b62496b
 {
     "id": 1,
     "result": {
@@ -70,7 +70,7 @@ Your Metahash address is 0x003d3b27f544d1dc03d6802e6379fdcfc25e0b73272b62496b
     }
 }
 
-#python crypt_example.py fetch-history --net=dev --address=0x003d3b27f544d1dc03d6802e6379fdcfc25e0b73272b62496b
+#python crypt_example_bin.py fetch-history --net=dev --address=0x003d3b27f544d1dc03d6802e6379fdcfc25e0b73272b62496b
 {
     "id": 1,
     "result": [
@@ -98,7 +98,7 @@ Your Metahash address is 0x003d3b27f544d1dc03d6802e6379fdcfc25e0b73272b62496b
     ]
 }
 
-#python crypt_example.py get-tx --net=dev --hash=ee0e11b793ff5a5b0d6954f0da4964ceb53f9887480e9a5e42608830ed401963
+#python crypt_example_bin.py get-tx --net=dev --hash=ee0e11b793ff5a5b0d6954f0da4964ceb53f9887480e9a5e42608830ed401963
 {
     "id": 1,
     "result": {
@@ -112,7 +112,7 @@ Your Metahash address is 0x003d3b27f544d1dc03d6802e6379fdcfc25e0b73272b62496b
     }
 }
 
-#python crypt_example.py create-tx --to=0x00525d3f6326549b8974ef669f8fced6153109ba60d52d547d --value=1000 --nonce=3 --pubkey=mh_public.pub --privkey=mh_private.pem
+#python crypt_example_bin.py create-tx --to=0x00525d3f6326549b8974ef669f8fced6153109ba60d52d547d --value=1000 --nonce=3 --pubkey=mh_public.pub --privkey=mh_private.pem
 {
     "jsonrpc": "2.0",
     "method": "mhc_send",
@@ -127,7 +127,7 @@ Your Metahash address is 0x003d3b27f544d1dc03d6802e6379fdcfc25e0b73272b62496b
     }
 }
 
-#python crypt_example.py send-tx --net=dev --to=0x00525d3f6326549b8974ef669f8fced6153109ba60d52d547d --value=1000 --pubkey=mh_public.pub --privkey=mh_private.pem
+#python crypt_example_bin.py send-tx --net=dev --to=0x00525d3f6326549b8974ef669f8fced6153109ba60d52d547d --value=1000 --pubkey=mh_public.pub --privkey=mh_private.pem
 {
     "result": "ok",
     "params": "e5147c8c42c94344a067fe2ded493f15cc8e4299b3333f6651ecd3e6381bfefa"
