@@ -2,7 +2,12 @@
 # coding: utf-8
 
 import sys
+if sys.version_info < (3,0):
+    print("You use Python version lower than 3. For this script work use Python version 3 and more.")
+    exit(1)
+
 import hashlib
+import random
 import json
 import binascii
 import argparse
@@ -34,6 +39,7 @@ PROXY_PORT = 9999
 TORRENT = 'tor.net-%s.metahash.org'
 TORRENT_PORT = 5795
 SUBPARSERS = {}
+COUNT_RETRY = 5
 
 
 def create_parser():
@@ -154,26 +160,59 @@ def check_args(current_args, args_for_check, parser_name):
     return True
 
 
-def get_ip_from_dns(url, net):
+def get_ip_from_dns(url, net, except_ip=''):
     url = url % net
 
     try:
-        return dns.resolver.Resolver().query(url).rrset.items[0].address
+        items = dns.resolver.Resolver().query(url).rrset.items
+        items = [i for i in items if i.address != except_ip]
+        index = random.randint(0,len(items)-1)
+        return items[index].address
     except dns.exception.Timeout as e:
         print("Timeout operation timed out after %r seconds - your computer is"
               " offline." % e.kwargs['timeout'])
         exit(1)
 
 
-def request_post(ip, port, func, data):
+def proxy_request_post(data, net, except_ip='', current_try=0):
+    addr = PROXY
+    port = PROXY_PORT
+
+    ip = get_ip_from_dns(addr, net)
+
+    req_url = "http://%s:%d" % (ip, port)
+    headers = {'Content-Type': 'application/json', 'Accept': 'text/plain'}
+
+    try:
+        return requests.post(req_url, data=json.dumps(data),
+                            headers=headers)
+    except requests.exceptions.ConnectionError:
+        if current_try < COUNT_RETRY:
+            return proxy_request_post(data, net, except_ip=ip, 
+                            current_try=current_try+1)
+        else:
+            print("Something went wrong. Failed to establish a new connection: "
+                    "[Errno 111] Connection refused. {ip}:{port}")
+            exit(1)
+
+
+def torrent_request_post(func, data, net, except_ip='', current_try=0):
+    addr = TORRENT
+    port = TORRENT_PORT
+
+    ip = get_ip_from_dns(addr, net, except_ip=except_ip)
     req_url = "http://%s:%d/%s" % (ip, port, func)
 
     try:
         return requests.post(req_url, json=data)
     except requests.exceptions.ConnectionError:
-        print("Something went wrong. Failed to establish a new connection: "
-              "[Errno 111] Connection refused.")
-        exit(1)
+        if current_try < COUNT_RETRY:
+            return torrent_request_post(func, data, net, except_ip=ip, 
+                            current_try=current_try+1)
+        else:
+            print("Something went wrong. Failed to establish a new connection: "
+                    "[Errno 111] Connection refused. {ip}:{port}/{func}")
+            exit(1)
 
 
 def response_to_json(response):
@@ -258,28 +297,22 @@ def generate_metahash_address():
 
 
 def fetch_balance(address, net):
-    addr = get_ip_from_dns(TORRENT, net)
-
-    response = request_post(addr, TORRENT_PORT, 'fetch-balance',
-                            {"id": 1, "params": {"address": address}})
+    response = torrent_request_post('fetch-balance',
+                {"id": 1, "params": {"address": address}}, net)
 
     return response_to_json(response)
 
 
 def fetch_history(address, net):
-    addr = get_ip_from_dns(TORRENT, net)
-
-    response = request_post(addr, TORRENT_PORT, 'fetch-history',
-                            {"id": 1, "params": {"address": address}})
+    response = torrent_request_post('fetch-history',
+                    {"id": 1, "params": {"address": address}}, net)
 
     return response_to_json(response)
 
 
 def get_tx(hash, net):
-    addr = get_ip_from_dns(TORRENT, net)
-
-    response = request_post(addr, TORRENT_PORT, 'get-tx',
-                            {"id": 1, "params": {"hash": hash}})
+    response = torrent_request_post('get-tx',
+                    {"id": 1, "params": {"hash": hash}}, net)
 
     return response_to_json(response)
 
@@ -319,18 +352,7 @@ def create_tx(to_addr, value, pubkey, privkey, nonce=None, fee='', data='', net=
     if net is None:
         return json.dumps(req_data, indent=4, separators=(',', ': '))
     else: # online mode
-        addr = get_ip_from_dns(PROXY, net)
-
-        req_url = "http://%s:%d" % (addr, PROXY_PORT)
-        headers = {'Content-Type': 'application/json', 'Accept': 'text/plain'}
-
-        try:
-            res = requests.post(req_url, data=json.dumps(req_data),
-                                headers=headers)
-        except requests.exceptions.ConnectionError:
-            print("Something went wrong. Failed to establish a new connection: "
-                  "[Errno 111] Connection refused.")
-            exit(1)
+        res = proxy_request_post(req_data, net)
 
         return response_to_json(res)
 
