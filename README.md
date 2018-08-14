@@ -4,8 +4,11 @@ This repository contains a script written in Python that describes the algorithm
 
 ## Dependencies
 
+- Install Python 3.
+- Install pip (if it is not installed along with Python).
+- Install the following modules using pip:
+
 ```shell
-pip install python3
 pip install cryptography
 pip install dnspython
 pip install requests
