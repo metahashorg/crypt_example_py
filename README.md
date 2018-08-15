@@ -2,6 +2,8 @@
 
 This repository contains a script written in Python that describes the algorithm for the Metahash address generation using cryptography module, fetching balance and history for wallet, creating and sending transaction as well as getting information about performing transaction by hash.
 
+Script **crypt_example.py** provides the text format of the sending of transactions. Script **crypt_example_bin.py** provides the binary format of the sending of transactions. **Text format is no longer supported!!!** Please use crypt_example_bin.py.
+
 ## Dependencies
 
 - Install Python 3.
