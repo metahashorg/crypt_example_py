@@ -108,7 +108,7 @@ def create_parser():
 
     sending_tx_parser = subparsers.add_parser('send-tx',
                                               description='Create transaction and sending',
-                                              prog='crypt_example.py sending-tx [args]',
+                                              prog='crypt_example.py send-tx [args]',
                                               usage='python %(prog)s',
                                               help='create and send transaction')
     sending_tx_parser.add_argument('--net', action='store', type=str, nargs=1,
