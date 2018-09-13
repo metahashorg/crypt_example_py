@@ -122,7 +122,7 @@ def create_parser():
     sending_tx_parser.add_argument('--privkey', action='store', type=str, nargs=1,
                                      help='path to private key file')
     sending_tx_parser.add_argument('--data', action='store', type=str, nargs=1,
-                                     help='data to send')
+                                     help='data to send (only test-net)')
     SUBPARSERS['send_tx_parser'] = sending_tx_parser
 
     return parser
