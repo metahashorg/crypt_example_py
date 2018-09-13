@@ -34,6 +34,69 @@ List of functions:
     send-tx         create and send transaction
 ```
 
+```shell
+usage: python crypt_example.py generate
+ ```
+
+```shell
+usage: python crypt_example.py fetch-balance [args]
+
+Get balance for MH address
+
+arguments:
+  --net NET          name of network (test, dev, main, etc.)
+  --address ADDRESS  MH address
+ ```
+
+```shell
+usage: python crypt_example.py fetch-history [args]
+
+Get history for MH address
+
+arguments:
+  --net NET          name of network (test, dev, main, etc.)
+  --address ADDRESS  MH address
+ ```
+
+```shell
+usage: python crypt_example.py get-tx [args]
+
+Get transaction information by hash
+
+arguments:
+  --net NET    name of network (test, dev, main, etc.)
+  --hash HASH  transaction hash
+ ```
+
+```shell
+usage: python crypt_example.py create-tx [args]
+
+Create transaction from input params
+
+arguments:
+  --net NET          name of network (test, dev, main, etc.)
+  --to TO            to MH wallet address
+  --value VALUE      value to send
+  --nonce NONCE      number of outgoing transactions + 1
+  --pubkey PUBKEY    path to public key file
+  --privkey PRIVKEY  path to private key file
+  --data DATA        data to send (only test-net)
+ ```
+
+```shell
+usage: python crypt_example.py send-tx [args]
+
+Create transaction and sending
+
+arguments:
+  --net NET          name of network (test, dev, main, etc.)
+  --to TO            to MH wallet address
+  --value VALUE      value to send
+  --pubkey PUBKEY    path to public key file
+  --privkey PRIVKEY  path to private key file
+  --data DATA        data to send (only test-net)
+ ```
+
 ### Outputs
 
 ```shell
@@ -130,9 +193,17 @@ Your Metahash address is 0x003d3b27f544d1dc03d6802e6379fdcfc25e0b73272b62496b
     }
 }
 
-#python crypt_example_bin.py send-tx --net=dev --to=0x00525d3f6326549b8974ef669f8fced6153109ba60d52d547d --value=1000 --pubkey=mh_public.pub --privkey=mh_private.pem
+#example for test-net
+#python crypt_example_bin.py send-tx --net=test --to=0x00525d3f6326549b8974ef669f8fced6153109ba60d52d547d --value=1000 --pubkey=mh_public.pub --privkey=mh_private.pem --data="qwerty"
 {
     "result": "ok",
     "params": "e5147c8c42c94344a067fe2ded493f15cc8e4299b3333f6651ecd3e6381bfefa"
+}
+
+#example for dev-net
+#python crypt_example_bin.py send-tx --net=dev --to=0x00525d3f6326549b8974ef669f8fced6153109ba60d52d547d --value=1000 --pubkey=mh_public.pub --privkey=mh_private.pem
+{
+    "result": "ok",
+    "params": "863b08cce1f6936645065cc0da050ed0028291af70516bccdb5eec6ad0cef0d5"
 }
 ```
