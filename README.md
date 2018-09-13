@@ -84,7 +84,7 @@ arguments:
  ```
 
 ```shell
-usage: python crypt_example.py sending-tx [args]
+usage: python crypt_example.py send-tx [args]
 
 Create transaction and sending
 
