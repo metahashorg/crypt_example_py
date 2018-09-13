@@ -102,6 +102,8 @@ def create_parser():
                                      help='path to public key file')
     create_tx_parser.add_argument('--privkey', action='store', type=str, nargs=1,
                                      help='path to private key file')
+    create_tx_parser.add_argument('--data', action='store', type=str, nargs=1,
+                                     help='data to send')
     SUBPARSERS['create_tx_parser'] = create_tx_parser
 
     sending_tx_parser = subparsers.add_parser('send-tx',
@@ -119,6 +121,8 @@ def create_parser():
                                      help='path to public key file')
     sending_tx_parser.add_argument('--privkey', action='store', type=str, nargs=1,
                                      help='path to private key file')
+    sending_tx_parser.add_argument('--data', action='store', type=str, nargs=1,
+                                     help='data to send')
     SUBPARSERS['send_tx_parser'] = sending_tx_parser
 
     return parser
@@ -354,12 +358,14 @@ def int_to_hex(value):
         return read_int512 + little_ending('%.128x' % value)
 
 
-def get_signed_line(to_addr, value, nonce, fee, data):
+def get_signed_line(to_addr, value, nonce, fee, data, net):
+    #attr net - temporarily
     result_str = ''
 
     value = int(value)
     nonce = int(nonce)
     fee = int(fee)
+    len_data = int(len(data) / 2)
 
     if to_addr.startswith('0x'):
         result_str += to_addr[2:]
@@ -368,15 +374,26 @@ def get_signed_line(to_addr, value, nonce, fee, data):
     result_str += int_to_hex(value)
     result_str += int_to_hex(fee)
     result_str += int_to_hex(nonce)
-    result_str += int_to_hex(len(data))
+    if net == 'test':
+        result_str += int_to_hex(len_data)
+        result_str += data
+    else:
+        result_str += int_to_hex(0)
 
     return binascii.unhexlify(result_str)
+
+
+def str_to_hex(str_data):
+    byte_data = str.encode(str_data)
+    hex_data = binascii.hexlify(byte_data)
+    return hex_data.decode()
 
 
 def create_tx(to_addr, value, pubkey, privkey, nonce=None, fee=0, data='', net=None):
     priv_key = load_pem_private_key(privkey, password=None,
                                backend=default_backend())
     pub_key = load_pem_public_key(pubkey, backend=default_backend())
+    hex_data = str_to_hex(data)
 
     if nonce is None:
         mh_address = get_addr_from_pubkey(get_code(pub_key), with_logging=False)
@@ -384,7 +401,7 @@ def create_tx(to_addr, value, pubkey, privkey, nonce=None, fee=0, data='', net=N
         nonce = req_json['result']['count_spent'] + 1
         nonce = str(nonce)
 
-    message = get_signed_line(to_addr, value, nonce, fee, data)
+    message = get_signed_line(to_addr, value, nonce, fee, hex_data, net)
 
     signature = priv_key.sign(
         message,
@@ -396,7 +413,7 @@ def create_tx(to_addr, value, pubkey, privkey, nonce=None, fee=0, data='', net=N
 
     req_data = {"jsonrpc": "2.0", "method": "mhc_send", "params":
                {"to": to_addr, "value": value, "fee": "",
-               "nonce": nonce, "data": "", "pubkey": binascii.b2a_hex(pub_key_der).decode(),
+               "nonce": nonce, "data": hex_data, "pubkey": binascii.b2a_hex(pub_key_der).decode(),
                "sign": binascii.b2a_hex(signature).decode()}}
 
     # offline mode
@@ -431,8 +448,9 @@ if __name__ == '__main__':
             pub = f.read()
         with open(option.privkey[0], 'rb') as f:
             pr = f.read()
+        data = option.data[0] if not option.data is None else ''
         print(create_tx(option.to[0], option.value[0], pub, pr,
-                           nonce=option.nonce[0]))
+                           nonce=option.nonce[0], data=data))
     elif option.subparser_name == 'send-tx' and \
             check_args(option, ['to', 'value', 'net', 'pubkey', 'privkey'],
                        'send_tx_parser'):
@@ -440,7 +458,8 @@ if __name__ == '__main__':
             pub = f.read()
         with open(option.privkey[0], 'rb') as f:
             pr = f.read()
+        data = option.data[0] if not option.data is None else ''
         print(create_tx(option.to[0], option.value[0], pub, pr,
-                           net=option.net[0]))
+                           net=option.net[0], data=data))
     else:
         arg_parser.print_help()
