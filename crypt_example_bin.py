@@ -394,6 +394,7 @@ def create_tx(to_addr, value, pubkey, privkey, nonce=None, fee=0, data='', net=N
                                backend=default_backend())
     pub_key = load_pem_public_key(pubkey, backend=default_backend())
     hex_data = str_to_hex(data)
+    fee = len(data)
 
     if nonce is None:
         mh_address = get_addr_from_pubkey(get_code(pub_key), with_logging=False)
@@ -412,7 +413,7 @@ def create_tx(to_addr, value, pubkey, privkey, nonce=None, fee=0, data='', net=N
                                    format=PublicFormat.SubjectPublicKeyInfo)
 
     req_data = {"jsonrpc": "2.0", "method": "mhc_send", "params":
-               {"to": to_addr, "value": value, "fee": "",
+               {"to": to_addr, "value": value, "fee": str(fee),
                "nonce": nonce, "data": hex_data, "pubkey": binascii.b2a_hex(pub_key_der).decode(),
                "sign": binascii.b2a_hex(signature).decode()}}
 
