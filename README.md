@@ -99,13 +99,15 @@ arguments:
 
 ### Outputs
 
+Output files for the "generate" function
+
 ```shell
 mh_private.pem - private key file
 mh_public.pub - public key file
 mh_address.txt - metahash address file
 ```
 
-### Outputs examples
+### Examples
 
 ```shell
 #python crypt_example_bin.py generate
@@ -121,7 +123,9 @@ Step 5. Another SHA-256 hash performed on value from Step 4.  Save first 4 bytes
 Done
 Step 6. These 4 bytes from last step added to RIPEMD-160 hash with prefix 0x. 
 Your Metahash address is 0x003d3b27f544d1dc03d6802e6379fdcfc25e0b73272b62496b
+```
 
+```shell
 #python crypt_example_bin.py fetch-balance --net=dev --address=0x003d3b27f544d1dc03d6802e6379fdcfc25e0b73272b62496b
 {
     "id": 1,
@@ -135,7 +139,9 @@ Your Metahash address is 0x003d3b27f544d1dc03d6802e6379fdcfc25e0b73272b62496b
         "currentBlock": 1512
     }
 }
+```
 
+```shell
 #python crypt_example_bin.py fetch-history --net=dev --address=0x003d3b27f544d1dc03d6802e6379fdcfc25e0b73272b62496b
 {
     "id": 1,
@@ -163,7 +169,9 @@ Your Metahash address is 0x003d3b27f544d1dc03d6802e6379fdcfc25e0b73272b62496b
         }
     ]
 }
+```
 
+```shell
 #python crypt_example_bin.py get-tx --net=dev --hash=ee0e11b793ff5a5b0d6954f0da4964ceb53f9887480e9a5e42608830ed401963
 {
     "id": 1,
@@ -177,7 +185,12 @@ Your Metahash address is 0x003d3b27f544d1dc03d6802e6379fdcfc25e0b73272b62496b
         }
     }
 }
+```
 
+For sending data will be charged a fee equal to the data field lehgth. For example, if data="qwerty", then fee=6.
+
+```shell
+# without data
 #python crypt_example_bin.py create-tx --to=0x00525d3f6326549b8974ef669f8fced6153109ba60d52d547d --value=1000 --nonce=3 --pubkey=mh_public.pub --privkey=mh_private.pem
 {
     "jsonrpc": "2.0",
@@ -193,14 +206,32 @@ Your Metahash address is 0x003d3b27f544d1dc03d6802e6379fdcfc25e0b73272b62496b
     }
 }
 
-#example for test-net
-#python crypt_example_bin.py send-tx --net=test --to=0x00525d3f6326549b8974ef669f8fced6153109ba60d52d547d --value=1000 --pubkey=mh_public.pub --privkey=mh_private.pem --data="qwerty"
+# with data
+#python crypt_example_bin.py create-tx --data="qwerty" --to=0x00525d3f6326549b8974ef669f8fced6153109ba60d52d547d --value=1000 --nonce=3 --pubkey=mh_public.pub --privkey=mh_private.pem
+{
+    "jsonrpc": "2.0",
+    "method": "mhc_send",
+    "params": {
+        "to": "0x00525d3f6326549b8974ef669f8fced6153109ba60d52d547d",
+        "value": "1000",
+        "fee": "6",
+        "nonce": "3",
+        "data": "717765727479",
+        "pubkey": "3056301006072a8648ce3d020106052b8104000a034200042fe59a96a81e55a592f5deedc331218f865a707e78254e2e5b476aa81e6dba17da86010a36a952c71d839dcdb9e20fbb5d29e7a739ee61444fe008d35c7557e8",
+        "sign": "30440220085be5094e855d897ed4c834eb42cc992927a5b45de88ba6ad6822e7d791602c02200cfe0cd4c9fdb855a8a363edd5d80e30ef1c1dc736e8588c0892724c598b1b1d"
+    }
+}
+```
+
+```shell
+# example for test-net
+#python crypt_example_bin.py send-tx --net=test --data="qwerty" --to=0x00525d3f6326549b8974ef669f8fced6153109ba60d52d547d --value=1000 --pubkey=mh_public.pub --privkey=mh_private.pem
 {
     "result": "ok",
     "params": "e5147c8c42c94344a067fe2ded493f15cc8e4299b3333f6651ecd3e6381bfefa"
 }
 
-#example for dev-net
+# example for dev-net
 #python crypt_example_bin.py send-tx --net=dev --to=0x00525d3f6326549b8974ef669f8fced6153109ba60d52d547d --value=1000 --pubkey=mh_public.pub --privkey=mh_private.pem
 {
     "result": "ok",
