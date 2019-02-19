@@ -43,8 +43,7 @@ COUNT_RETRY = 5
 
 def create_parser():
     parser = argparse.ArgumentParser(description='Crypt example python',
-                                     prog='crypt_example.py',
-                                     usage='python %(prog)s [functions]')
+                                     prog='python crypt_example.py')
     subparsers = parser.add_subparsers(title='List of functions',
                                        metavar='', dest='subparser_name')
 
@@ -53,76 +52,71 @@ def create_parser():
 
     balance_parser = subparsers.add_parser('fetch-balance',
                                            description='Get balance for MH address',
-                                           prog='crypt_example.py fetch-balance [args]',
-                                           usage='python %(prog)s',
+                                           prog='python crypt_example.py fetch-balance',
                                            help='get balance for MH address')
     balance_parser.add_argument('--net', action='store', type=str, nargs=1,
-                                help='name of network (test, dev, main, etc.)')
+                                help='name of network (test, dev, main, etc.)', required=True)
     balance_parser.add_argument('--address', action='store', type=str,
-                                help='MH address', nargs=1)
     SUBPARSERS['balance_parser'] = balance_parser
+                                help='MH address', nargs=1, required=True)
 
     history_parser = subparsers.add_parser('fetch-history',
                                            description='Get history for MH address',
-                                           prog='crypt_example.py fetch-history [args]',
-                                           usage='python %(prog)s',
+                                           prog='python crypt_example.py fetch-history',
                                            help='get history for MH address')
     history_parser.add_argument('--net', action='store', type=str, nargs=1,
-                                help='name of network (test, dev, main, etc.)')
+                                help='name of network (test, dev, main, etc.)', required=True)
     history_parser.add_argument('--address', action='store', type=str,
-                                help='MH address', nargs=1)
     SUBPARSERS['history_parser'] = history_parser
+                                help='MH address', nargs=1, required=True)
 
     get_tx_parser = subparsers.add_parser('get-tx',
                                           description='Get transaction information by hash',
-                                          prog='crypt_example.py get-tx [args]',
-                                          usage='python %(prog)s',
+                                          prog='python crypt_example.py get-tx',
                                           help='get transaction information by hash')
     get_tx_parser.add_argument('--net', action='store', type=str, nargs=1,
-                               help='name of network (test, dev, main, etc.)')
+                               help='name of network (test, dev, main, etc.)', required=True)
     get_tx_parser.add_argument('--hash', action='store', type=str, nargs=1,
-                               help='transaction hash')
     SUBPARSERS['get_tx_parser'] = get_tx_parser
+                               help='transaction hash', required=True)
 
     create_tx_parser = subparsers.add_parser('create-tx',
-                                                description='Create transaction from input params',
-                                                prog='crypt_example.py create-tx [args]',
-                                                usage='python %(prog)s',
-                                                help='create transaction using input params')
+                                             description='Create transaction from input params',
+                                             prog='python crypt_example.py create-tx',
+                                             help='create transaction using input params')
     create_tx_parser.add_argument('--net', action='store', type=str, nargs=1,
-                                     help='name of network (test, dev, main, etc.)')
+                                     help='name of network (test, dev, main, etc.)', required=True)
     create_tx_parser.add_argument('--to', action='store', type=str, nargs=1,
-                                     help='to MH wallet address')
+                                     help='to MH wallet address', required=True)
     create_tx_parser.add_argument('--value', action='store', type=str, nargs=1,
-                                     help='value to send')
+                                     help='value to send', required=True)
     create_tx_parser.add_argument('--nonce', action='store', type=str, nargs=1,
                                      help='number of outgoing transactions + 1')
     create_tx_parser.add_argument('--pubkey', action='store', type=str, nargs=1,
                                      help='path to public key file')
     create_tx_parser.add_argument('--privkey', action='store', type=str, nargs=1,
-                                     help='path to private key file')
+                                     help='path to private key file', required=True)
     create_tx_parser.add_argument('--data', action='store', type=str, nargs=1,
-                                     help='data to send (only test-net)')
     SUBPARSERS['create_tx_parser'] = create_tx_parser
+                                     help='data to send')
 
     sending_tx_parser = subparsers.add_parser('send-tx',
                                               description='Create transaction and sending',
-                                              prog='crypt_example.py send-tx [args]',
-                                              usage='python %(prog)s',
+                                              prog='python crypt_example.py send-tx',
                                               help='create and send transaction')
     sending_tx_parser.add_argument('--net', action='store', type=str, nargs=1,
-                                   help='name of network (test, dev, main, etc.)')
+                                   help='name of network (test, dev, main, etc.)', required=True)
     sending_tx_parser.add_argument('--to', action='store', type=str, nargs=1,
-                                   help='to MH wallet address')
+                                   help='to MH wallet address', required=True)
     sending_tx_parser.add_argument('--value', action='store', type=str, nargs=1,
-                                   help='value to send')
+                                   help='value to send', required=True)
     sending_tx_parser.add_argument('--pubkey', action='store', type=str, nargs=1,
                                      help='path to public key file')
     sending_tx_parser.add_argument('--privkey', action='store', type=str, nargs=1,
-                                     help='path to private key file')
+                                     help='path to private key file', required=True)
     sending_tx_parser.add_argument('--data', action='store', type=str, nargs=1,
-                                     help='data to send (only test-net)')
     SUBPARSERS['send_tx_parser'] = sending_tx_parser
+                                     help='data to send')
 
     return parser
 
