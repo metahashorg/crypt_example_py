@@ -2,8 +2,8 @@
 # coding: utf-8
 
 import sys
-if sys.version_info < (3,0):
-    print('You use Python version lower than 3. For this script work use Python version 3 and more.')
+if sys.version_info < (3,5):
+    print('You use Python version lower than 3.5. For this script work use Python version 3.5 and more.')
     exit(1)
 
 import hashlib
