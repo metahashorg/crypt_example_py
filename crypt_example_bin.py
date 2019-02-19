@@ -37,7 +37,6 @@ PROXY = 'proxy.net-%s.metahash.org'
 PROXY_PORT = 9999
 TORRENT = 'tor.net-%s.metahash.org'
 TORRENT_PORT = 5795
-SUBPARSERS = {}
 COUNT_RETRY = 5
 
 
@@ -57,7 +56,6 @@ def create_parser():
     balance_parser.add_argument('--net', action='store', type=str, nargs=1,
                                 help='name of network (test, dev, main, etc.)', required=True)
     balance_parser.add_argument('--address', action='store', type=str,
-    SUBPARSERS['balance_parser'] = balance_parser
                                 help='MH address', nargs=1, required=True)
 
     history_parser = subparsers.add_parser('fetch-history',
@@ -67,7 +65,6 @@ def create_parser():
     history_parser.add_argument('--net', action='store', type=str, nargs=1,
                                 help='name of network (test, dev, main, etc.)', required=True)
     history_parser.add_argument('--address', action='store', type=str,
-    SUBPARSERS['history_parser'] = history_parser
                                 help='MH address', nargs=1, required=True)
 
     get_tx_parser = subparsers.add_parser('get-tx',
@@ -77,7 +74,6 @@ def create_parser():
     get_tx_parser.add_argument('--net', action='store', type=str, nargs=1,
                                help='name of network (test, dev, main, etc.)', required=True)
     get_tx_parser.add_argument('--hash', action='store', type=str, nargs=1,
-    SUBPARSERS['get_tx_parser'] = get_tx_parser
                                help='transaction hash', required=True)
 
     create_tx_parser = subparsers.add_parser('create-tx',
@@ -97,7 +93,6 @@ def create_parser():
     create_tx_parser.add_argument('--privkey', action='store', type=str, nargs=1,
                                      help='path to private key file', required=True)
     create_tx_parser.add_argument('--data', action='store', type=str, nargs=1,
-    SUBPARSERS['create_tx_parser'] = create_tx_parser
                                      help='data to send')
 
     sending_tx_parser = subparsers.add_parser('send-tx',
@@ -115,46 +110,9 @@ def create_parser():
     sending_tx_parser.add_argument('--privkey', action='store', type=str, nargs=1,
                                      help='path to private key file', required=True)
     sending_tx_parser.add_argument('--data', action='store', type=str, nargs=1,
-    SUBPARSERS['send_tx_parser'] = sending_tx_parser
                                      help='data to send')
 
     return parser
-
-
-def check_args(current_args, args_for_check, parser_name):
-    if 'net' in args_for_check and current_args.net is None:
-        print("Something went wrong, requires an argument 'net'")
-        SUBPARSERS[parser_name].print_help()
-        return False
-    elif 'address' in args_for_check and current_args.address is None:
-        print("Something went wrong, requires an argument 'address'")
-        SUBPARSERS[parser_name].print_help()
-        return False
-    elif 'hash' in args_for_check and current_args.hash is None:
-        print("Something went wrong, requires an argument 'hash'")
-        SUBPARSERS[parser_name].print_help()
-        return False
-    elif 'to' in args_for_check and current_args.to is None:
-        print("Something went wrong, requires an argument 'to'")
-        SUBPARSERS[parser_name].print_help()
-        return False
-    elif 'value' in args_for_check and current_args.value is None:
-        print("Something went wrong, requires an argument 'value'")
-        SUBPARSERS[parser_name].print_help()
-        return False
-    elif 'nonce' in args_for_check and current_args.nonce is None:
-        print("Something went wrong, requires an argument 'nonce'")
-        SUBPARSERS[parser_name].print_help()
-        return False
-    elif 'pubkey' in args_for_check and current_args.pubkey is None:
-        print("Something went wrong, requires an argument 'pubkey'")
-        SUBPARSERS[parser_name].print_help()
-        return False
-    elif 'privkey' in args_for_check and current_args.privkey is None:
-        print("Something went wrong, requires an argument 'privkey'")
-        SUBPARSERS[parser_name].print_help()
-        return False
-    return True
 
 
 def get_ip_from_dns(url, net, except_ip=''):
@@ -422,30 +380,23 @@ if __name__ == '__main__':
     if option.subparser_name == 'generate':
         print("Start generate MetaHash address...")
         generate_metahash_address()
-    elif option.subparser_name == 'fetch-balance' and \
-            check_args(option, ['net', 'address'], 'balance_parser'):
+    elif option.subparser_name == 'fetch-balance':
         print(fetch_balance(option.address[0], option.net[0]))
-    elif option.subparser_name == 'fetch-history' and \
-            check_args(option, ['net', 'address'], 'history_parser'):
+    elif option.subparser_name == 'fetch-history':
         print(fetch_history(option.address[0], option.net[0]))
-    elif option.subparser_name == 'get-tx' and \
-            check_args(option, ['net', 'hash'], 'get_tx_parser'):
+    elif option.subparser_name == 'get-tx':
         print(get_tx(option.hash[0], option.net[0]))
-    elif option.subparser_name == 'create-tx' and \
-            check_args(option, ['to', 'value', 'nonce', 'pubkey', 'privkey'],
-                       'create_tx_parser'):
         with open(option.pubkey[0], 'rb') as f:
             pub = f.read()
+    elif option.subparser_name == 'create-tx':
         with open(option.privkey[0], 'rb') as f:
             pr = f.read()
         data = option.data[0] if not option.data is None else ''
         print(create_tx(option.to[0], option.value[0], pub, pr,
                            nonce=option.nonce[0], data=data))
-    elif option.subparser_name == 'send-tx' and \
-            check_args(option, ['to', 'value', 'net', 'pubkey', 'privkey'],
-                       'send_tx_parser'):
         with open(option.pubkey[0], 'rb') as f:
             pub = f.read()
+    elif option.subparser_name == 'send-tx':
         with open(option.privkey[0], 'rb') as f:
             pr = f.read()
         data = option.data[0] if not option.data is None else ''
