@@ -88,8 +88,6 @@ def create_parser():
                                      help='value to send', required=True)
     create_tx_parser.add_argument('--nonce', action='store', type=str, nargs=1,
                                      help='number of outgoing transactions + 1')
-    create_tx_parser.add_argument('--pubkey', action='store', type=str, nargs=1,
-                                     help='path to public key file')
     create_tx_parser.add_argument('--privkey', action='store', type=str, nargs=1,
                                      help='path to private key file', required=True)
     create_tx_parser.add_argument('--data', action='store', type=str, nargs=1,
@@ -105,8 +103,6 @@ def create_parser():
                                    help='to MH wallet address', required=True)
     sending_tx_parser.add_argument('--value', action='store', type=str, nargs=1,
                                    help='value to send', required=True)
-    sending_tx_parser.add_argument('--pubkey', action='store', type=str, nargs=1,
-                                     help='path to public key file')
     sending_tx_parser.add_argument('--privkey', action='store', type=str, nargs=1,
                                      help='path to private key file', required=True)
     sending_tx_parser.add_argument('--data', action='store', type=str, nargs=1,
@@ -334,10 +330,10 @@ def str_to_hex(str_data):
     return hex_data.decode()
 
 
-def create_tx(to_addr, value, pubkey, privkey, nonce=None, fee=0, data='', net=None):
+def create_tx(to_addr, value, privkey, nonce=None, fee=0, data='', net=None):
     priv_key = load_pem_private_key(privkey, password=None,
                                backend=default_backend())
-    pub_key = load_pem_public_key(pubkey, backend=default_backend())
+    pub_key = priv_key.public_key()
     hex_data = str_to_hex(data)
     fee = len(data)
 
@@ -384,21 +380,17 @@ if __name__ == '__main__':
         print(fetch_history(option.address[0], option.net[0]))
     elif option.subparser_name == 'get-tx':
         print(get_tx(option.hash[0], option.net[0]))
-        with open(option.pubkey[0], 'rb') as f:
-            pub = f.read()
     elif option.subparser_name == 'create-tx':
         with open(option.privkey[0], 'rb') as f:
             pr = f.read()
         data = option.data[0] if not option.data is None else ''
-        print(create_tx(option.to[0], option.value[0], pub, pr,
+        print(create_tx(option.to[0], option.value[0], pr,
                            nonce=option.nonce[0], data=data))
-        with open(option.pubkey[0], 'rb') as f:
-            pub = f.read()
     elif option.subparser_name == 'send-tx':
         with open(option.privkey[0], 'rb') as f:
             pr = f.read()
         data = option.data[0] if not option.data is None else ''
-        print(create_tx(option.to[0], option.value[0], pub, pr,
+        print(create_tx(option.to[0], option.value[0], pr,
                            net=option.net[0], data=data))
     else:
         arg_parser.print_help()
