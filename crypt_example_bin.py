@@ -120,9 +120,7 @@ def get_ip_from_dns(url, net, except_ip=''):
 
     try:
         items = dns.resolver.Resolver().query(url).rrset.items
-        items = [i for i in items if i.address != except_ip]
-        index = random.randint(0,len(items)-1)
-        return items[index].address
+        return items[0].address
     except dns.exception.Timeout as e:
         print("Timeout operation timed out after %r seconds - your computer is"
               " offline." % e.kwargs['timeout'])
