@@ -134,7 +134,7 @@ def proxy_request_post(data, net, except_ip='', current_try=0):
 
     try:
         return requests.post(req_url, data=json.dumps(data),
-                            headers=headers)
+                            headers=headers, timeout=(3.0, 3.0))
     except requests.exceptions.ConnectionError:
         if current_try < COUNT_RETRY:
             return proxy_request_post(data, net, except_ip=ip, 
@@ -153,7 +153,7 @@ def torrent_request_post(func, data, net, except_ip='', current_try=0):
     req_url = "http://%s:%d/%s" % (ip, port, func)
 
     try:
-        return requests.post(req_url, json=data)
+        return requests.post(req_url, json=data, timeout=(3.0, 3.0))
     except requests.exceptions.ConnectionError:
         if current_try < COUNT_RETRY:
             return torrent_request_post(func, data, net, except_ip=ip, 
