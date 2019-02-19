@@ -358,8 +358,7 @@ def int_to_hex(value):
         return read_int512 + little_ending('%.128x' % value)
 
 
-def get_signed_line(to_addr, value, nonce, fee, data, net):
-    #attr net - temporarily
+def get_signed_line(to_addr, value, nonce, fee, data):
     result_str = ''
 
     value = int(value)
@@ -374,11 +373,8 @@ def get_signed_line(to_addr, value, nonce, fee, data, net):
     result_str += int_to_hex(value)
     result_str += int_to_hex(fee)
     result_str += int_to_hex(nonce)
-    if net == 'test':
-        result_str += int_to_hex(len_data)
-        result_str += data
-    else:
-        result_str += int_to_hex(0)
+    result_str += int_to_hex(len_data)
+    result_str += data
 
     return binascii.unhexlify(result_str)
 
@@ -402,7 +398,7 @@ def create_tx(to_addr, value, pubkey, privkey, nonce=None, fee=0, data='', net=N
         nonce = req_json['result']['count_spent'] + 1
         nonce = str(nonce)
 
-    message = get_signed_line(to_addr, value, nonce, fee, hex_data, net)
+    message = get_signed_line(to_addr, value, nonce, fee, hex_data)
 
     signature = priv_key.sign(
         message,
