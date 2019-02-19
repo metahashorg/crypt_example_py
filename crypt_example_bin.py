@@ -11,6 +11,7 @@ import random
 import json
 import binascii
 import argparse
+
 try:
     from cryptography.hazmat.backends import default_backend
     from cryptography.hazmat.primitives import hashes
@@ -18,19 +19,17 @@ try:
     from cryptography.hazmat.primitives.serialization import Encoding, PrivateFormat, NoEncryption, PublicFormat
     from cryptography.hazmat.primitives.serialization import load_pem_private_key, load_pem_public_key
 except ImportError:
-    print('Something went wrong, check your cryptography module installation')
+    print('Something went wrong, check your cryptography module installation (pip install cryptography)')
     exit(1)
-
 try:
     import dns.resolver
 except ImportError:
-    print('Something went wrong, check your dnspython module installation')
+    print('Something went wrong, check your dnspython module installation (pip install dnspython)')
     exit(1)
-
 try:
     import requests
 except ImportError:
-    print('Something went wrong, check your requests module installation')
+    print('Something went wrong, check your requests module installation (pip install requests)')
     exit(1)
 
 
