@@ -224,6 +224,7 @@ def hash_code(code, algth):
 
 
 def generate_metahash_address():
+    print("Start generate MetaHash address...")
     print("Step 1. Generate private and public keys. Take part of the public "
           "key that equals to 65 bytes.")
 
@@ -231,16 +232,17 @@ def generate_metahash_address():
     private_key_pem = private_key.private_bytes(encoding=Encoding.PEM,
                                 format=PrivateFormat.TraditionalOpenSSL,
                                 encryption_algorithm=NoEncryption())
-    save_to_file(private_key_pem.decode("utf-8"), "mh_private.pem")
 
     pub_key = private_key.public_key()
     pub_key_pem = pub_key.public_bytes(encoding=Encoding.PEM,
                                    format=PublicFormat.SubjectPublicKeyInfo)
-    save_to_file(pub_key_pem.decode("utf-8"), "mh_public.pub")
 
     code = get_code(pub_key)
     address = get_addr_from_pubkey(code)
-    save_to_file(address, "mh_address.txt")
+
+    save_to_file(private_key_pem.decode("utf-8"), "%s_private.pem" % address)
+    save_to_file(pub_key_pem.decode("utf-8"), "%s_public.pub" % address)
+    save_to_file(address, "%s.txt" % address)
 
     print("Your Metahash address is %s" % address)
 
@@ -372,7 +374,6 @@ if __name__ == '__main__':
     option = arg_parser.parse_args(sys.argv[1:])
 
     if option.subparser_name == 'generate':
-        print("Start generate MetaHash address...")
         generate_metahash_address()
     elif option.subparser_name == 'fetch-balance':
         print(fetch_balance(option.address[0], option.net[0]))
