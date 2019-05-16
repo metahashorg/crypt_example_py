@@ -33,9 +33,9 @@ except ImportError:
     exit(1)
 
 
-PROXY = 'proxy.net-%s.metahash.org'
+PROXY = 'proxy.net-%s.metahashnetwork.com'
 PROXY_PORT = 9999
-TORRENT = 'tor.net-%s.metahash.org'
+TORRENT = 'tor.net-%s.metahashnetwork.com'
 TORRENT_PORT = 5795
 COUNT_RETRY = 5
 
@@ -140,8 +140,8 @@ def proxy_request_post(data, net, except_ip='', current_try=0):
             return proxy_request_post(data, net, except_ip=ip, 
                             current_try=current_try+1)
         else:
-            print(f'Something went wrong. Failed to establish a new connection: '
-                    f'[Errno 111] Connection refused. {ip}:{port}')
+            print(f"Something went wrong. Failed to establish a new connection: "
+                    f"[Errno 111] Connection refused. {ip}:{port}")
             exit(1)
 
 
@@ -364,6 +364,7 @@ def create_tx(to_addr, value, privkey, nonce=None, fee=0, data='', net=None):
     if net is None:
         return json.dumps(req_data, indent=4, separators=(',', ': '))
     else: # online mode
+        print(json.dumps(req_data, indent=4, separators=(',', ': ')))
         res = proxy_request_post(req_data, net)
 
         return response_to_json(res)
